@@ -4,7 +4,7 @@ import { Workbook, SpreadsheetFile } from "@oai/artifact-tool";
 
 const report = JSON.parse(await fs.readFile(process.argv[2], "utf8"));
 const workbook = Workbook.create();
-const headers = ["Roads in list", "Start points", "Intermediate points", "End points", "Listed roads covered", "New roads", "Unclassified points", "Review flags", "Trial points excluded"];
+const headers = ["Roads in list", "Start points", "Intermediate points", "End points", "Listed roads covered", "New roads", "Unclassified points", "Review flags", "RMMS or trial exclusions"];
 const keys = ["listed", "start", "intermediate", "end", "covered", "new", "unknown", "review", "excluded"];
 const numbers = row => keys.map(key => row[key]);
 const stamp = time => time.slice(0, 19).replace("T", " ") + " IST";
@@ -22,6 +22,8 @@ function sheet(name, headings, data, widths, totalRow = false) {
   ws.getRange("A2").values = [["Last updated " + stamp(report.updatedAt) + "  •  " + report.mode + " through " + stamp(report.sourceThrough)]];
   ws.getRange("A3:" + last + "3").merge();
   ws.getRange("A3").values = [["Coverage requires a Start and an End point matched to the same listed road. New roads are distinct manual entries outside the register."]];
+  ws.getRange("A4:" + last + "4").merge();
+  ws.getRange("A4").values = [["Points recorded by RMMS Cell, RMMS Cell 2, or RMMS Cell 3 are excluded from this and future reports."]];
   const head = ws.getRange("A5:" + last + "5");
   head.values = [headings];
   head.format.fill = "#176447";
@@ -42,7 +44,7 @@ function sheet(name, headings, data, widths, totalRow = false) {
   });
   ws.freezePanes.freezeRows(5);
 }
-const metricWidths = [14, 14, 22, 13, 23, 13, 21, 15, 22];
+const metricWidths = [14, 14, 22, 13, 23, 13, 21, 15, 26];
 sheet("Division summary", ["Division", ...headers, "Cloud verified"],
   [...report.divisions.map(row => [row.name, ...numbers(row), stamp(row.verifiedAt)]),
     [report.total.name, ...numbers(report.total), null]],

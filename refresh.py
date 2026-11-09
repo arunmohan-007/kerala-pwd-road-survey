@@ -16,6 +16,7 @@ BACKUPS = HERE.parent / "Daily Backups"
 IST = timezone(timedelta(hours=5, minutes=30))
 METRICS = ("listed", "start", "intermediate", "end", "covered", "new", "unknown", "review", "excluded")
 TYPES = {"start", "intermediate", "end"}
+RMMS_COLLECTORS = {"rmmscell", "rmmscell2", "rmmscell3"}
 # Varkala trial point identified by the report owner on 9 November 2026.
 TRIAL_POINTS = {"b7761e13f1eb27a85d1526f2bb885a080ff747530e7e51de22c9d441bb456e75"}
 
@@ -73,8 +74,8 @@ def division(manifest_path, name):
             if key and normalized(road):
                 register[key, normalized(road)].append((fid, normalized(road_class), normalized(number)))
 
-        for point_id, section, road, selection, road_class, number, point_type in db.execute(
-            "SELECT Point_ID,PWD_Section,Road_Name,Road_Selection,Road_Class,Road_NUMBER,Point_Type "
+        for point_id, section, road, selection, road_class, number, point_type, username in db.execute(
+            "SELECT Point_ID,PWD_Section,Road_Name,Road_Selection,Road_Class,Road_NUMBER,Point_Type,Username "
             "FROM Survey_Points"
         ):
             key = section_key(section)
@@ -82,7 +83,8 @@ def division(manifest_path, name):
             fingerprint = hashlib.sha256(
                 json.dumps([name, point_id, section, road, point_type], ensure_ascii=False).encode("utf-8")
             ).hexdigest()
-            if fingerprint in TRIAL_POINTS:
+            collector = re.sub(r"[\s_-]+", "", normalized(username))
+            if collector in RMMS_COLLECTORS or fingerprint in TRIAL_POINTS:
                 section_row["excluded"] += 1
                 continue
             point_type = normalized(point_type)

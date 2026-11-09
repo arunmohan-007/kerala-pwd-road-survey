@@ -63,9 +63,11 @@ def main(source):
         "New roads counts distinct manually entered road identities absent from the register. "
         "Cloud snapshots exclude submissions that have yet to sync.", body)])
     story.append(Paragraph(
+        "Points recorded by RMMS Cell, RMMS Cell 2, or RMMS Cell 3 are excluded from this and future reports.", body))
+    story.append(Paragraph(
         f'Unclassified points: {report["total"]["unknown"]:,}. '
         f'Road match or identity flags: {report["total"]["review"]:,}. '
-        f'Trial points excluded: {report["total"]["excluded"]:,}.', body))
+        f'RMMS or trial points excluded: {report["total"]["excluded"]:,}.', body))
     for division in report["divisions"]:
         story.append(PageBreak())
         heading(division["name"] + " - PWD section report", updated + "  |  Cloud verified " +
