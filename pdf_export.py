@@ -50,7 +50,7 @@ def main(source):
     story = []
 
     def heading(text, detail):
-        story.extend([Paragraph("KERALA PWD &amp; KHRI  |  ROAD NETWORK SURVEY", body),
+        story.extend([Paragraph("KERALA PWD AND KHRI  |  ROAD NETWORK SURVEY", body),
                       Paragraph(escape(text), title), Paragraph(escape(detail), body),
                       Spacer(1, 11)])
 

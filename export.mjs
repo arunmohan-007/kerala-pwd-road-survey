@@ -14,7 +14,7 @@ function sheet(name, headings, data, widths, totalRow = false) {
   const last = String.fromCharCode(64 + headings.length);
   const title = ws.getRange("A1:" + last + "1");
   title.merge();
-  ws.getRange("A1").values = [["Kerala PWD × KHRI  |  Road Network Survey"]];
+  ws.getRange("A1").values = [["Kerala PWD and KHRI  |  Road Network Survey"]];
   title.format.fill = "#103830";
   title.format.font = {color: "#FFFFFF", bold: true, size: 17};
   title.format.rowHeight = 33;
