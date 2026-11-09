@@ -64,7 +64,8 @@ def main(source):
         "Cloud snapshots exclude submissions that have yet to sync.", body)])
     story.append(Paragraph(
         f'Unclassified points: {report["total"]["unknown"]:,}. '
-        f'Road match or identity flags: {report["total"]["review"]:,}.', body))
+        f'Road match or identity flags: {report["total"]["review"]:,}. '
+        f'Trial points excluded: {report["total"]["excluded"]:,}.', body))
     for division in report["divisions"]:
         story.append(PageBreak())
         heading(division["name"] + " - PWD section report", updated + "  |  Cloud verified " +

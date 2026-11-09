@@ -98,7 +98,8 @@ function initialize(report) {
     $("rows").replaceChildren(...rows.map(row => tableRow(row, !selected)));
     $("totals").replaceChildren(tableRow({...total, name: selected ? "Division total" : total.name}, false));
     $("quality").textContent = format.format(total.unknown) + " unclassified points · " +
-      format.format(total.review) + " road match or identity flags · Cloud snapshots exclude submissions that have yet to sync.";
+      format.format(total.review) + " road match or identity flags · " + format.format(total.excluded) +
+      " trial points excluded · Cloud snapshots exclude submissions that have yet to sync.";
     paintChart(rows, Boolean(selected));
   }
   $("updated").textContent = "Last updated " + when(report.updatedAt);

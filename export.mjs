@@ -4,8 +4,8 @@ import { Workbook, SpreadsheetFile } from "@oai/artifact-tool";
 
 const report = JSON.parse(await fs.readFile(process.argv[2], "utf8"));
 const workbook = Workbook.create();
-const headers = ["Roads in list", "Start points", "Intermediate points", "End points", "Listed roads covered", "New roads", "Unclassified points", "Review flags"];
-const keys = ["listed", "start", "intermediate", "end", "covered", "new", "unknown", "review"];
+const headers = ["Roads in list", "Start points", "Intermediate points", "End points", "Listed roads covered", "New roads", "Unclassified points", "Review flags", "Trial points excluded"];
+const keys = ["listed", "start", "intermediate", "end", "covered", "new", "unknown", "review", "excluded"];
 const numbers = row => keys.map(key => row[key]);
 const stamp = time => time.slice(0, 19).replace("T", " ") + " IST";
 
@@ -42,7 +42,7 @@ function sheet(name, headings, data, widths, totalRow = false) {
   });
   ws.freezePanes.freezeRows(5);
 }
-const metricWidths = [14, 14, 22, 13, 23, 13, 21, 15];
+const metricWidths = [14, 14, 22, 13, 23, 13, 21, 15, 22];
 sheet("Division summary", ["Division", ...headers, "Cloud verified"],
   [...report.divisions.map(row => [row.name, ...numbers(row), stamp(row.verifiedAt)]),
     [report.total.name, ...numbers(report.total), null]],
