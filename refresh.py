@@ -65,7 +65,9 @@ def division(manifest_path, name):
 
     with closing(sqlite3.connect(data.as_uri() + "?mode=ro&immutable=1", uri=True)) as db:
         for (section,) in db.execute("SELECT PWD_Section FROM PWD_Sections"):
-            sections.setdefault(section_key(section), row(label(section)))
+            key = section_key(section)
+            if key and key != "unassigned pwd section":
+                sections.setdefault(key, row(label(section)))
         for fid, section, road, road_class, number in db.execute(
             "SELECT fid,PWD_Section,Road_Name,Road_Class,Road_NUMBER FROM Road_Register"
         ):
