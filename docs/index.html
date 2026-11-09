@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Kerala PWD and KHRI road network survey reporting by division and PWD section.">
 <meta name="theme-color" content="#102c28">
-<title>Road Network Survey | Kerala PWD and KHRI</title>
+<title>Road Network Survey | Kerala PWD | KHRI</title>
 <link rel="stylesheet" href="styles.css">
 <script src="app.js" defer></script>
 </head>
 <body>
 <header class="mast"><div class="shell mast-inner">
-  <div class="brand"><span class="mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M11 27 14 5m7 22L18 5M16 26v-4m0-4v-4m0-4V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><div><strong>Kerala PWD and KHRI</strong><small>ROAD ASSET DIGITISATION</small></div></div>
-  <div class="exports"><a class="pdf" href="road-survey.pdf" download>↓ PDF</a><a href="road-survey.xlsx" download>↓ Excel</a></div>
+  <div class="brand"><span class="mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M11 27 14 5m7 22L18 5M16 26v-4m0-4v-4m0-4V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><div><strong>Kerala PWD</strong><small>ROAD ASSET DIGITISATION</small></div></div>
+  <div class="brand brand-partner"><strong>Kerala Highway Research Institute (KHRI)</strong></div>
 </div></header>
 <main class="shell">
   <section class="hero">
@@ -27,7 +27,10 @@
     <section class="panel" aria-labelledby="table-title">
       <div class="panel-head">
         <div><div class="eyebrow">SURVEY REGISTER</div><h2 id="table-title">Division progress</h2><p id="table-detail">Select a division to see its PWD section report.</p></div>
-        <label class="filter">Reporting area<select id="division"><option value="">All divisions</option></select></label>
+        <div class="table-actions">
+          <label class="filter">Reporting area<select id="division"><option value="">All divisions</option></select></label>
+          <div class="exports"><a class="pdf" href="road-survey.pdf" download>↓ PDF</a><a href="road-survey.xlsx" download>↓ Excel</a></div>
+        </div>
       </div>
       <div class="table-wrap" tabindex="0" role="region" aria-label="Survey counts"><table>
         <thead><tr><th scope="col" id="group-heading">Division</th><th scope="col">Roads in list</th><th scope="col">Start points</th><th scope="col">Intermediate points</th><th scope="col">End points</th><th scope="col">Listed roads covered</th><th scope="col">New roads</th></tr></thead>
