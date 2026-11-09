@@ -7,6 +7,7 @@ import sqlite3
 import subprocess
 import sys
 from collections import defaultdict
+from contextlib import closing
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -59,7 +60,7 @@ def division(manifest_path, name):
     review = defaultdict(set)
     invalid = defaultdict(int)
 
-    with sqlite3.connect(data.as_uri() + "?mode=ro&immutable=1", uri=True) as db:
+    with closing(sqlite3.connect(data.as_uri() + "?mode=ro&immutable=1", uri=True)) as db:
         for (section,) in db.execute("SELECT PWD_Section FROM PWD_Sections"):
             sections.setdefault(section_key(section), row(label(section)))
         for fid, section, road, road_class, number in db.execute(
