@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Kerala PWD and KHRI road network survey reporting by division and PWD section.">
+<meta name="theme-color" content="#102c28">
+<title>Road Network Survey | Kerala PWD · KHRI</title>
+<link rel="stylesheet" href="styles.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<header class="mast"><div class="shell mast-inner">
+  <div class="brand"><span class="mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M11 27 14 5m7 22L18 5M16 26v-4m0-4v-4m0-4V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><div><strong>Kerala PWD <span>×</span> KHRI</strong><small>ROAD ASSET DIGITISATION</small></div></div>
+  <div class="exports"><a class="pdf" href="road-survey.pdf" download>↓ PDF</a><a href="road-survey.xlsx" download>↓ Excel</a></div>
+</div></header>
+<main class="shell">
+  <section class="hero">
+    <svg class="route" viewBox="0 0 520 260" fill="none" aria-hidden="true"><path d="M530 25H407L347 86H270L210 145H128L30 248M530 47H418L358 108H281L221 167H139L53 255M530 69H429L369 130H292L232 189H150L79 260M530 91H440L380 152H303L243 211H161L110 263" stroke="#6ee1b2" stroke-opacity=".25" stroke-width="1.3"/><path d="M520 47H418L358 108H281L221 167H139L53 255" stroke="#a5f3c7" stroke-opacity=".6" stroke-dasharray="5 8"/><circle cx="358" cy="108" r="5" fill="#a5f3c7"/><circle cx="221" cy="167" r="5" fill="#a5f3c7"/></svg>
+    <div class="eyebrow"><span class="dot"></span> SURVEY MONITORING DASHBOARD</div>
+    <h1>Road Network Survey</h1>
+    <p>Field survey progress across Kerala’s PWD divisions and sections.</p>
+    <div class="hero-meta"><span id="updated">Loading report…</span><span id="source"></span></div>
+  </section>
+  <div id="report" hidden>
+    <section class="summary" aria-label="Survey totals" id="summary"></section>
+    <section class="panel" aria-labelledby="table-title">
+      <div class="panel-head">
+        <div><div class="eyebrow">SURVEY REGISTER</div><h2 id="table-title">Division progress</h2><p id="table-detail">Select a division to see its PWD section report.</p></div>
+        <label class="filter">Reporting area<select id="division"><option value="">All divisions</option></select></label>
+      </div>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="Survey counts"><table>
+        <thead><tr><th scope="col" id="group-heading">Division</th><th scope="col">Roads in list</th><th scope="col">Start points</th><th scope="col">Intermediate points</th><th scope="col">End points</th><th scope="col">Listed roads covered</th><th scope="col">New roads</th></tr></thead>
+        <tbody id="rows"></tbody><tfoot id="totals"></tfoot>
+      </table></div>
+    </section>
+    <section class="panel chart-panel" aria-labelledby="chart-title">
+      <div class="panel-head"><div><div class="eyebrow">COMPARISON</div><h2 id="chart-title">Road coverage</h2><p id="chart-detail"></p></div><label class="filter">Chart view<select id="chart-mode"><option value="roads">Road coverage</option><option value="points">Points surveyed</option></select></label></div>
+      <div class="legend" id="legend"></div><div id="chart" class="chart" role="list"></div>
+    </section>
+    <section class="notes">
+      <h2>How the counts are calculated</h2>
+      <p>Roads in list counts register entries. Listed roads covered counts entries with at least one Start point and one End point matched unambiguously to the same road. Start and end counts refer to individual points.</p>
+      <p>New roads counts distinct manually entered road identities absent from the register. Spelling variations can affect this count. Ambiguous matches and incomplete identities are flagged for review.</p>
+      <p id="quality"></p>
+    </section>
+  </div>
+  <p id="error" role="alert" hidden>Unable to load the survey report. Reload the page to try again.</p>
+</main>
+<footer class="shell footer"><span>KERALA PUBLIC WORKS DEPARTMENT</span><span>Kerala Highway Research Institute</span></footer>
+</body>
+</html>
