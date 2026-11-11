@@ -58,16 +58,14 @@ def main(source):
     heading("Kerala division summary", updated + "  |  " + report["mode"] +
             " through " + stamp(report["sourceThrough"]))
     story.append(table("Division", report["divisions"], report["total"]))
-    story.extend([Spacer(1, 13), Paragraph(
+    story.extend([Spacer(1, 4), Paragraph(
         "Listed roads covered requires at least one Start and one End point matched to the same listed road. "
         "New roads counts distinct manually entered road identities absent from the register. "
-        "Cloud snapshots exclude submissions that have yet to sync.", body)])
-    story.append(Paragraph(
-        "Points recorded by RMMS Cell, RMMS Cell 2, or RMMS Cell 3 are excluded from this and future reports.", body))
-    story.append(Paragraph(
+        "Cloud snapshots exclude submissions that have yet to sync. "
+        "Points recorded by RMMS Cell, RMMS Cell 2, or RMMS Cell 3 are excluded from this and future reports. "
         f'Unclassified points: {report["total"]["unknown"]:,}. '
         f'Road match or identity flags: {report["total"]["review"]:,}. '
-        f'RMMS or trial points excluded: {report["total"]["excluded"]:,}.', body))
+        f'RMMS or trial points excluded: {report["total"]["excluded"]:,}.', body)])
     for division in report["divisions"]:
         story.append(PageBreak())
         heading(division["name"] + " - PWD section report", updated + "  |  Cloud verified " +
