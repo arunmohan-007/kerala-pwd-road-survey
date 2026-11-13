@@ -1,4 +1,4 @@
-"""Build aggregate-only reports from one complete verified QFieldCloud batch."""
+"""Build survey reports from one complete verified QFieldCloud batch."""
 import argparse
 import hashlib
 import json
@@ -16,6 +16,7 @@ BACKUPS = HERE.parent / "Daily Backups"
 IST = timezone(timedelta(hours=5, minutes=30))
 METRICS = ("listed", "start", "intermediate", "end", "covered", "new", "unknown", "review", "excluded")
 TYPES = {"start", "intermediate", "end"}
+STRETCH_LIMIT = re.compile(r"\b(?:start|end)\s+(?:point\s+)?of\s+stretch\b")
 RMMS_COLLECTORS = {"rmmscell", "rmmscell2", "rmmscell3"}
 # Varkala trial point identified by the report owner on 9 November 2026.
 TRIAL_POINTS = {"b7761e13f1eb27a85d1526f2bb885a080ff747530e7e51de22c9d441bb456e75"}
@@ -62,6 +63,7 @@ def division(manifest_path, name):
     added = defaultdict(set)
     review = defaultdict(set)
     invalid = defaultdict(int)
+    roads = defaultdict(dict)
 
     with closing(sqlite3.connect(data.as_uri() + "?mode=ro&immutable=1", uri=True)) as db:
         for (section,) in db.execute("SELECT PWD_Section FROM PWD_Sections"):
@@ -73,12 +75,13 @@ def division(manifest_path, name):
         ):
             key = section_key(section)
             sections.setdefault(key, row(label(section)))["listed"] += 1
+            roads[key][fid] = {"name": str(road or "").strip()}
             if key and normalized(road):
                 register[key, normalized(road)].append((fid, normalized(road_class), normalized(number)))
 
-        for point_id, section, road, selection, road_class, number, point_type, username in db.execute(
-            "SELECT Point_ID,PWD_Section,Road_Name,Road_Selection,Road_Class,Road_NUMBER,Point_Type,Username "
-            "FROM Survey_Points"
+        for point_id, section, road, selection, road_class, number, point_type, username, location, remarks in db.execute(
+            "SELECT Point_ID,PWD_Section,Road_Name,Road_Selection,Road_Class,Road_NUMBER,Point_Type,Username,"
+            "Location_Name,Remarks FROM Survey_Points ORDER BY fid"
         ):
             key = section_key(section)
             section_row = sections.setdefault(key, row(label(section)))
@@ -92,6 +95,7 @@ def division(manifest_path, name):
             point_type = normalized(point_type)
             section_row[point_type if point_type in TYPES else "unknown"] += 1
             selected = normalized(selection)
+            display_name = str(road or "").strip() or str(selection or "").strip()
             road, road_class, number = normalized(road) or selected, normalized(road_class), normalized(number)
             if not (key and road and road_class) or (road_class == "sh" and not number):
                 invalid[key] += 1
@@ -103,16 +107,29 @@ def division(manifest_path, name):
                        and (road_class != "sh" or not num or num == number)]
             if len(matches) == 1 and (not selected or selected == road):
                 endpoints[key][matches[0], identity].add(point_type)
+                road_row = roads[key][matches[0]]
             elif not candidates and not selected:
                 added[key].add(identity)
+                road_row = roads[key].setdefault(identity, {"name": display_name})
             else:
                 review[key].add(identity)
+                road_row = roads[key].setdefault(identity, {"name": display_name})
+            if point_type in TYPES:
+                column = point_type
+                point_label = str(location or "").strip()
+                if point_type == "intermediate" and STRETCH_LIMIT.search(normalized(remarks)):
+                    column = "stretch"
+                    point_label = " · ".join(filter(None, (point_label, str(remarks).strip())))
+                road_row.setdefault(column, []).append(point_label)
 
     for key, section in sections.items():
         section["covered"] = len({fid for (fid, _), types in endpoints[key].items()
                                   if {"start", "end"} <= types})
         section["new"] = len(added[key] - review[key])
         section["review"] = len(review[key]) + invalid[key]
+        for identity in added[key] - review[key]:
+            roads[key][identity]["name"] += " (New)"
+        section["roads"] = sorted(roads[key].values(), key=lambda road: road["name"].casefold())
     rows = sorted(sections.values(), key=lambda item: item["name"].casefold())
     result = total(name, rows)
     if sum(result[key] for key in TYPES | {"unknown", "excluded"}) != expected:

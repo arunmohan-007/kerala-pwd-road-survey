@@ -60,23 +60,50 @@ function initialize(report) {
   const projects = new Map(report.divisions.map(row => [row.name, row]));
   for (const name of projects.keys()) division.add(new Option(name, name));
   function select(name) {
+    $("road-panel").hidden = true;
     division.value = projects.has(name) ? name : "";
     const query = new URLSearchParams();
     if (division.value) query.set("division", division.value);
     history.replaceState(null, "", location.pathname + (query.size ? "?" + query : ""));
     render();
   }
-  function tableRow(row, drilldown) {
+  function showRoads(section) {
+    const roads = section.roads || [];
+    $("road-title").textContent = section.name + " · Road details";
+    $("road-detail").textContent = roads.length ? format.format(roads.length) + " roads"
+      : "No road details available for this section.";
+    $("road-rows").replaceChildren(...roads.map(road => {
+      const tr = node("tr");
+      const name = node("th", road.name || "Unnamed road");
+      name.scope = "row";
+      tr.append(name);
+      for (const key of ["start", "end", "intermediate", "stretch"]) {
+        const points = road[key] || [];
+        const cell = node("td", points.length ? format.format(points.length) : "—");
+        const locations = points.filter(Boolean);
+        if (locations.length) {
+          const list = node("ul");
+          list.append(...locations.map(location => node("li", location)));
+          cell.append(list);
+        }
+        tr.append(cell);
+      }
+      return tr;
+    }));
+    $("road-panel").hidden = false;
+    $("road-title").focus();
+  }
+  function tableRow(row, onClick) {
     const tr = node("tr");
     const heading = node("th");
     heading.scope = "row";
-    if (drilldown) {
+    if (onClick) {
       const button = node("button", row.name, "division-link");
       button.type = "button";
       const arrow = node("span", "→");
       arrow.setAttribute("aria-hidden", "true");
       button.append(arrow);
-      button.addEventListener("click", () => { select(row.name); division.focus(); });
+      button.addEventListener("click", onClick);
       heading.append(button);
     } else heading.textContent = row.name;
     tr.append(heading, ...metrics.map(([key]) => node("td", format.format(row[key]))));
@@ -88,15 +115,17 @@ function initialize(report) {
     const total = selected || report.total;
     $("table-title").textContent = selected ? selected.name + " · PWD sections" : "Division progress";
     $("group-heading").textContent = selected ? "PWD section" : "Division";
-    $("table-detail").textContent = selected ? rows.length + " sections · Verified " + when(selected.verifiedAt)
+    $("table-detail").textContent = selected ? rows.length + " sections · Select a PWD section to see its roads · Verified " + when(selected.verifiedAt)
       : report.divisions.length + " divisions · Select a division to see its PWD sections.";
     $("summary").replaceChildren(...metrics.map(([key, title, detail]) => {
       const card = node("article", undefined, "stat " + key);
       card.append(node("small", title), node("b", format.format(total[key])), node("span", detail));
       return card;
     }));
-    $("rows").replaceChildren(...rows.map(row => tableRow(row, !selected)));
-    $("totals").replaceChildren(tableRow({...total, name: selected ? "Division total" : total.name}, false));
+    $("rows").replaceChildren(...rows.map(row => tableRow(row, selected
+      ? () => showRoads(row)
+      : () => { select(row.name); division.focus(); })));
+    $("totals").replaceChildren(tableRow({...total, name: selected ? "Division total" : total.name}));
     const exclusions = selected
       ? format.format(total.excluded) + " in " + selected.name + ", " + format.format(report.total.excluded) + " statewide"
       : format.format(report.total.excluded) + " statewide";

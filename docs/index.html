@@ -39,6 +39,13 @@
         <tbody id="rows"></tbody><tfoot id="totals"></tfoot>
       </table></div>
     </section>
+    <section class="panel" id="road-panel" aria-labelledby="road-title" hidden>
+      <div class="panel-head"><div><h2 id="road-title" tabindex="-1"></h2><p id="road-detail"></p></div></div>
+      <div class="table-wrap" tabindex="0" role="region" aria-labelledby="road-title"><table class="road-table">
+        <thead><tr><th scope="col">Road name</th><th scope="col">Start point</th><th scope="col">End point</th><th scope="col">Intermediate points (direction)</th><th scope="col">Intermediate points (stretch start/end)</th></tr></thead>
+        <tbody id="road-rows"></tbody>
+      </table></div>
+    </section>
     <section class="panel chart-panel" aria-labelledby="chart-title">
       <div class="panel-head"><div><div class="eyebrow">COMPARISON</div><h2 id="chart-title">Road coverage</h2><p id="chart-detail"></p></div><label class="filter">Chart view<select id="chart-mode"><option value="roads">Road coverage</option><option value="points">Points surveyed</option></select></label></div>
       <div class="legend" id="legend"></div><div id="chart" class="chart" role="list"></div>
