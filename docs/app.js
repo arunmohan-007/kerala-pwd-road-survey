@@ -13,8 +13,8 @@ const metrics = [
   ["new", "New roads", "Outside the register"]
 ];
 const chartSeries = {
-  roads: [["covered", "Covered", "#137b58"], ["remaining", "Without both matched endpoints", "#a0bcac"]],
-  points: [["start", "Start", "#147858"], ["intermediate", "Intermediate", "#5687c4"], ["end", "End", "#b4771d"], ["unknown", "Unclassified", "#7a6c85"]]
+  roads: [["covered", "Covered", "#0b57d0"], ["remaining", "Without both matched endpoints", "#c2d7f8"]],
+  points: [["start", "Start", "#0b57d0"], ["intermediate", "Intermediate", "#4285f4"], ["end", "End", "#188038"], ["unknown", "Unclassified", "#7a6c85"]]
 };
 function node(tag, value, className) {
   const el = document.createElement(tag);
@@ -133,6 +133,31 @@ function initialize(report) {
       format.format(total.review) + " road match or identity flags · RMMS or trial points excluded (" +
       exclusions + ") · Cloud snapshots exclude submissions that have yet to sync.";
     paintChart(rows, Boolean(selected));
+  }
+  const completed = report.divisions.flatMap(project => project.sections
+    .filter(section => section.listed > 0 && section.covered === section.listed)
+    .map(section => ({name: section.name, project: project.name, section})))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const pending = report.divisions
+    .filter(row => row.start + row.intermediate + row.end + row.unknown === 0)
+    .map(row => ({name: row.name, project: row.name}));
+  for (const [id, entries] of [["completed", completed], ["pending", pending]]) {
+    $(id + "-count").textContent = format.format(entries.length);
+    const items = entries.map(entry => {
+      const item = node("li");
+      const button = node("button", undefined, "status-link");
+      const title = node("strong", entry.name);
+      button.append(title);
+      if (entry.section) button.append(node("small", entry.project));
+      button.addEventListener("click", () => {
+        select(entry.project);
+        if (entry.section) showRoads(entry.section);
+        else division.focus();
+      });
+      item.append(button);
+      return item;
+    });
+    $(id + "-list").replaceChildren(...(items.length ? items : [node("li", "No entries in this report.", "status-empty")]));
   }
   $("updated").textContent = "Last updated " + when(report.updatedAt);
   $("source").textContent = report.mode + " · " + when(report.sourceThrough);
