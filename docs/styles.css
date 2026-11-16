@@ -80,7 +80,9 @@ tfoot{background:#deebfc;color:#153764}
 .below-average{margin-bottom:18px;border-top-color:#98252b}
 .below-average .status-head h2,.below-average-percent{color:#98252b}
 .below-average .status-count{color:#98252b;background:#fce8e9}
-.below-average .status-list{max-height:none}
+.below-average .status-list{max-height:166px;overscroll-behavior-y:contain}
+.below-average .status-list:focus-visible{outline-offset:2px}
+@media print{.below-average .status-list{max-height:none}}
 .below-average .status-link{grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px}
 .below-average .status-link::after{grid-column:3}
 .below-average-percent{font-variant-numeric:tabular-nums}
