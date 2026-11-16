@@ -9,6 +9,14 @@ function metricValue(row, key) {
   if (key === "completion") return row.listed > 0 ? percent.format(row.covered / row.listed) : "—";
   return format.format(row[key]);
 }
+function completionBand(row) {
+  if (!row.listed) return "none";
+  const rate = Math.round(1000 * row.covered / row.listed) / 10;
+  if (rate < 25) return "low";
+  if (rate < 50) return "fair";
+  if (rate < 75) return "good";
+  return "high";
+}
 const metrics = [
   ["listed", "Roads in list", "Register entries"],
   ["start", "Start points", "Surveyed"],
@@ -99,6 +107,11 @@ function initialize(report) {
     $("road-panel").hidden = false;
     $("road-title").focus();
   }
+  function completionCell(row) {
+    const cell = node("td");
+    cell.append(node("span", metricValue(row, "completion"), "completion-badge " + completionBand(row)));
+    return cell;
+  }
   function tableRow(row, onClick) {
     const tr = node("tr");
     const heading = node("th");
@@ -112,7 +125,8 @@ function initialize(report) {
       button.addEventListener("click", onClick);
       heading.append(button);
     } else heading.textContent = row.name;
-    tr.append(heading, ...metrics.map(([key]) => node("td", metricValue(row, key))));
+    tr.append(heading, ...metrics.map(([key]) => key === "completion"
+      ? completionCell(row) : node("td", metricValue(row, key))));
     return tr;
   }
   function render() {
@@ -125,6 +139,7 @@ function initialize(report) {
       : report.divisions.length + " divisions · Select a division to see its PWD sections.";
     $("summary").replaceChildren(...metrics.map(([key, title, detail]) => {
       const card = node("article", undefined, "stat " + key);
+      if (key === "completion") card.classList.add(completionBand(total));
       card.append(node("small", title), node("b", metricValue(total, key)), node("span", detail));
       return card;
     }));
