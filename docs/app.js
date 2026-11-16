@@ -149,10 +149,12 @@ function initialize(report) {
     $("group-heading").textContent = selected ? "PWD section" : "Division";
     $("table-detail").textContent = selected ? format.format(counts.notStarted) + " PWD sections not started · " + format.format(counts.completed) + " PWD sections completed · Select a PWD section to see its roads · Verified " + when(selected.verifiedAt)
       : report.divisions.length + " divisions · Select a division to see its PWD sections.";
-    $("summary").replaceChildren(...metrics.map(([key, title, detail]) => {
+    const summaryMetrics = [...metrics, ["notStarted", "PWD sections yet to start", "No survey points counted"]];
+    const summaryTotals = {...total, notStarted: counts.notStarted};
+    $("summary").replaceChildren(...summaryMetrics.map(([key, title, detail]) => {
       const card = node("article", undefined, "stat " + key);
       if (key === "completion") card.classList.add(completionBand(total));
-      card.append(node("small", title), node("b", metricValue(total, key)), node("span", detail));
+      card.append(node("small", title), node("b", metricValue(summaryTotals, key)), node("span", detail));
       return card;
     }));
     $("rows").replaceChildren(...rows.map(row => tableRow(row, selected

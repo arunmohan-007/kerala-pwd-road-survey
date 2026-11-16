@@ -86,3 +86,6 @@ tfoot{background:#deebfc;color:#153764}
 .below-average .status-link{grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px}
 .below-average .status-link::after{grid-column:3}
 .below-average-percent{font-variant-numeric:tabular-nums}
+.stat.notStarted{--metric:#98252b;--metric-bg:#fce8e9}
+@media(min-width:951px){.summary{grid-template-columns:repeat(8,minmax(0,1fr))}}
+@media print{.summary{grid-template-columns:repeat(8,minmax(0,1fr))}}
