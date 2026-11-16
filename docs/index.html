@@ -52,7 +52,7 @@
         </div>
       </div>
       <div class="table-wrap" tabindex="0" role="region" aria-label="Survey counts"><table>
-        <thead><tr><th scope="col" id="group-heading">Division</th><th scope="col">Roads in list</th><th scope="col">Start points</th><th scope="col">Intermediate points</th><th scope="col">End points</th><th scope="col">Listed roads covered</th><th scope="col">Road completion</th><th scope="col">New roads</th></tr></thead>
+        <thead><tr><th scope="col" id="group-heading">Division</th><th scope="col">Roads in list</th><th scope="col">Start points</th><th scope="col">Intermediate points</th><th scope="col">End points</th><th scope="col">Listed roads covered</th><th scope="col">Road completion</th><th scope="col">New roads</th><th scope="col" data-division-count>PWD sections not started</th><th scope="col" data-division-count>PWD sections completed</th></tr></thead>
         <tbody id="rows"></tbody><tfoot id="totals"></tfoot>
       </table></div>
     </section>
@@ -70,7 +70,7 @@
     <section class="notes">
       <h2>How the counts are calculated</h2>
       <p>Points recorded by RMMS Cell, RMMS Cell 2, or RMMS Cell 3 are excluded from this and future reports.</p>
-      <p>Roads in list counts register entries. Listed roads covered counts entries with at least one Start point and one End point matched unambiguously to the same road. Road completion is the share of listed roads with both matched endpoints. A dash indicates there are zero listed roads. Start and end counts refer to individual points.</p>
+      <p>Roads in list counts register entries. Listed roads covered counts entries with at least one Start point and one End point matched unambiguously to the same road. Road completion is the share of listed roads with both matched endpoints. A dash indicates there are zero listed roads. A PWD section is counted as not started when it has no survey points after exclusions, and completed when every listed road has both matched endpoints. Start and end counts refer to individual points.</p>
       <p>New roads counts distinct manually entered road identities absent from the register. Spelling variations can affect this count. Ambiguous matches and incomplete identities are flagged for review.</p>
       <p id="quality"></p>
     </section>

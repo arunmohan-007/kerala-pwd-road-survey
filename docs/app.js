@@ -17,6 +17,15 @@ function completionBand(row) {
   if (rate < 75) return "good";
   return "high";
 }
+const hasNotStarted = row => row.start + row.intermediate + row.end + row.unknown === 0;
+const hasCompleted = section => section.listed > 0 && section.covered === section.listed;
+function sectionCounts(sections) {
+  const assigned = sections.filter(section => !/^unassigned (?:pwd )?section$/i.test(section.name));
+  return {
+    notStarted: assigned.filter(hasNotStarted).length,
+    completed: assigned.filter(hasCompleted).length
+  };
+}
 const metrics = [
   ["listed", "Roads in list", "Register entries"],
   ["start", "Start points", "Surveyed"],
@@ -112,7 +121,7 @@ function initialize(report) {
     cell.append(node("span", metricValue(row, "completion"), "completion-badge " + completionBand(row)));
     return cell;
   }
-  function tableRow(row, onClick) {
+  function tableRow(row, onClick, counts) {
     const tr = node("tr");
     const heading = node("th");
     heading.scope = "row";
@@ -127,15 +136,18 @@ function initialize(report) {
     } else heading.textContent = row.name;
     tr.append(heading, ...metrics.map(([key]) => key === "completion"
       ? completionCell(row) : node("td", metricValue(row, key))));
+    if (counts) tr.append(node("td", format.format(counts.notStarted)), node("td", format.format(counts.completed)));
     return tr;
   }
   function render() {
     const selected = projects.get(division.value);
     const rows = selected ? selected.sections : report.divisions;
     const total = selected || report.total;
+    const counts = sectionCounts(selected ? rows : rows.flatMap(project => project.sections));
+    for (const header of document.querySelectorAll("[data-division-count]")) header.hidden = Boolean(selected);
     $("table-title").textContent = selected ? selected.name + " · PWD sections" : "Division progress";
     $("group-heading").textContent = selected ? "PWD section" : "Division";
-    $("table-detail").textContent = selected ? rows.length + " sections · Select a PWD section to see its roads · Verified " + when(selected.verifiedAt)
+    $("table-detail").textContent = selected ? format.format(counts.notStarted) + " PWD sections not started · " + format.format(counts.completed) + " PWD sections completed · Select a PWD section to see its roads · Verified " + when(selected.verifiedAt)
       : report.divisions.length + " divisions · Select a division to see its PWD sections.";
     $("summary").replaceChildren(...metrics.map(([key, title, detail]) => {
       const card = node("article", undefined, "stat " + key);
@@ -145,8 +157,8 @@ function initialize(report) {
     }));
     $("rows").replaceChildren(...rows.map(row => tableRow(row, selected
       ? () => showRoads(row)
-      : () => { select(row.name); division.focus(); })));
-    $("totals").replaceChildren(tableRow({...total, name: selected ? "Division total" : total.name}));
+      : () => { select(row.name); division.focus(); }, selected ? null : sectionCounts(row.sections))));
+    $("totals").replaceChildren(tableRow({...total, name: selected ? "Division total" : total.name}, null, selected ? null : counts));
     const exclusions = selected
       ? format.format(total.excluded) + " in " + selected.name + ", " + format.format(report.total.excluded) + " statewide"
       : format.format(report.total.excluded) + " statewide";
@@ -156,11 +168,11 @@ function initialize(report) {
     paintChart(rows, Boolean(selected));
   }
   const completed = report.divisions.flatMap(project => project.sections
-    .filter(section => section.listed > 0 && section.covered === section.listed)
+    .filter(hasCompleted)
     .map(section => ({name: section.name, project: project.name, section})))
     .sort((a, b) => a.name.localeCompare(b.name));
   const pending = report.divisions
-    .filter(row => row.start + row.intermediate + row.end + row.unknown === 0)
+    .filter(hasNotStarted)
     .map(row => ({name: row.name, project: row.name}));
   for (const [id, entries] of [["completed", completed], ["pending", pending]]) {
     $(id + "-count").textContent = format.format(entries.length);
