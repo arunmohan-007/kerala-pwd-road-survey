@@ -4,12 +4,18 @@ const date = new Intl.DateTimeFormat("en-IN", {
   timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short"
 });
 const when = value => date.format(new Date(value)) + " IST";
+const percent = new Intl.NumberFormat("en-IN", {style: "percent", maximumFractionDigits: 1});
+function metricValue(row, key) {
+  if (key === "completion") return row.listed > 0 ? percent.format(row.covered / row.listed) : "—";
+  return format.format(row[key]);
+}
 const metrics = [
   ["listed", "Roads in list", "Register entries"],
   ["start", "Start points", "Surveyed"],
   ["intermediate", "Intermediate points", "Surveyed"],
   ["end", "End points", "Surveyed"],
   ["covered", "Listed roads covered", "With both endpoints"],
+  ["completion", "Road completion", "Covered share of listed roads"],
   ["new", "New roads", "Outside the register"]
 ];
 const chartSeries = {
@@ -106,7 +112,7 @@ function initialize(report) {
       button.addEventListener("click", onClick);
       heading.append(button);
     } else heading.textContent = row.name;
-    tr.append(heading, ...metrics.map(([key]) => node("td", format.format(row[key]))));
+    tr.append(heading, ...metrics.map(([key]) => node("td", metricValue(row, key))));
     return tr;
   }
   function render() {
@@ -119,7 +125,7 @@ function initialize(report) {
       : report.divisions.length + " divisions · Select a division to see its PWD sections.";
     $("summary").replaceChildren(...metrics.map(([key, title, detail]) => {
       const card = node("article", undefined, "stat " + key);
-      card.append(node("small", title), node("b", format.format(total[key])), node("span", detail));
+      card.append(node("small", title), node("b", metricValue(total, key)), node("span", detail));
       return card;
     }));
     $("rows").replaceChildren(...rows.map(row => tableRow(row, selected
