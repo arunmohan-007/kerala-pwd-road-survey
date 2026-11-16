@@ -174,7 +174,17 @@ function initialize(report) {
   const pending = report.divisions
     .filter(hasNotStarted)
     .map(row => ({name: row.name, project: row.name}));
-  for (const [id, entries] of [["completed", completed], ["pending", pending]]) {
+  const statewide = report.total;
+  $("state-average").textContent = "State average " + metricValue(statewide, "completion");
+  const belowAverage = report.divisions
+    .filter(row => row.listed > 0 && row.covered * statewide.listed < statewide.covered * row.listed)
+    .sort((a, b) => a.covered / a.listed - b.covered / b.listed || a.name.localeCompare(b.name))
+    .map(row => ({name: row.name, project: row.name, completion: metricValue(row, "completion")}));
+  for (const [id, entries, empty] of [
+    ["completed", completed, "No PWD sections have completed the survey."],
+    ["pending", pending, "All divisions and districts have started."],
+    ["below-average", belowAverage, "No divisions or districts are below the state average."]
+  ]) {
     $(id + "-count").textContent = format.format(entries.length);
     const items = entries.map(entry => {
       const item = node("li");
@@ -182,6 +192,7 @@ function initialize(report) {
       const title = node("strong", entry.name);
       button.append(title);
       if (entry.section) button.append(node("small", entry.project));
+      if (entry.completion) button.append(node("span", entry.completion, "below-average-percent"));
       button.addEventListener("click", () => {
         select(entry.project);
         if (entry.section) showRoads(entry.section);
@@ -190,7 +201,7 @@ function initialize(report) {
       item.append(button);
       return item;
     });
-    $(id + "-list").replaceChildren(...(items.length ? items : [node("li", "No entries in this report.", "status-empty")]));
+    $(id + "-list").replaceChildren(...(items.length ? items : [node("li", empty, "status-empty")]));
   }
   $("updated").textContent = "Last updated " + when(report.updatedAt);
   $("source").textContent = report.mode + " · " + when(report.sourceThrough);

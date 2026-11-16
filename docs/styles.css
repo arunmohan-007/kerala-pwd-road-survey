@@ -77,3 +77,10 @@ tfoot{background:#deebfc;color:#153764}
 .completion-badge.good,.stat.completion.good{--metric:#66500a;--metric-bg:#fff4cb}
 .completion-badge.high,.stat.completion.high{--metric:#176345;--metric-bg:#e0f3e8}
 .completion-badge.none,.stat.completion.none{--metric:#475569;--metric-bg:#eef2f6}
+.below-average{margin-bottom:18px;border-top-color:#98252b}
+.below-average .status-head h2,.below-average-percent{color:#98252b}
+.below-average .status-count{color:#98252b;background:#fce8e9}
+.below-average .status-list{max-height:none}
+.below-average .status-link{grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px}
+.below-average .status-link::after{grid-column:3}
+.below-average-percent{font-variant-numeric:tabular-nums}
