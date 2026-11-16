@@ -83,12 +83,15 @@ function initialize(report) {
   const projects = new Map(report.divisions.map(row => [row.name, row]));
   for (const name of projects.keys()) division.add(new Option(name, name));
   const notStartedPanel = $("not-started-panel");
-  $("not-started-list").append(...report.divisions.map(project => {
+  const notStartedByProject = report.divisions
+    .map(project => ({name: project.name, count: sectionCounts(project.sections).notStarted}))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  $("not-started-list").append(...notStartedByProject.map(project => {
     const item = node("li");
     const button = node("button", undefined, "status-link");
     button.type = "button";
     button.append(node("strong", project.name),
-      node("span", format.format(sectionCounts(project.sections).notStarted), "below-average-percent"));
+      node("span", format.format(project.count), "below-average-percent"));
     button.addEventListener("click", () => {
       select(project.name);
       division.focus();
