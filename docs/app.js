@@ -167,7 +167,7 @@ function initialize(report) {
     $("group-heading").textContent = selected ? "PWD section" : "Division";
     $("table-detail").textContent = selected ? format.format(counts.notStarted) + " PWD sections not started · " + format.format(counts.completed) + " PWD sections completed · Select a PWD section to see its roads · Verified " + when(selected.verifiedAt)
       : report.divisions.length + " divisions · Select a division to see its PWD sections.";
-    const summaryMetrics = [...metrics, ["notStarted", "PWD sections yet to start", "No survey points counted"]];
+    const summaryMetrics = [...metrics, ["notStarted", "PWD sections yet to start", "Click to view"]];
     const summaryTotals = {...total, notStarted: counts.notStarted};
     $("summary").replaceChildren(...summaryMetrics.map(([key, title, detail]) => {
       const isNotStarted = key === "notStarted";
