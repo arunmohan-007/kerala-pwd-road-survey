@@ -82,8 +82,23 @@ function initialize(report) {
   const division = $("division");
   const projects = new Map(report.divisions.map(row => [row.name, row]));
   for (const name of projects.keys()) division.add(new Option(name, name));
+  const notStartedPanel = $("not-started-panel");
+  $("not-started-list").append(...report.divisions.map(project => {
+    const item = node("li");
+    const button = node("button", undefined, "status-link");
+    button.type = "button";
+    button.append(node("strong", project.name),
+      node("span", format.format(sectionCounts(project.sections).notStarted), "below-average-percent"));
+    button.addEventListener("click", () => {
+      select(project.name);
+      division.focus();
+    });
+    item.append(button);
+    return item;
+  }));
   function select(name) {
     $("road-panel").hidden = true;
+    notStartedPanel.hidden = true;
     division.value = projects.has(name) ? name : "";
     const query = new URLSearchParams();
     if (division.value) query.set("division", division.value);
@@ -152,8 +167,18 @@ function initialize(report) {
     const summaryMetrics = [...metrics, ["notStarted", "PWD sections yet to start", "No survey points counted"]];
     const summaryTotals = {...total, notStarted: counts.notStarted};
     $("summary").replaceChildren(...summaryMetrics.map(([key, title, detail]) => {
-      const card = node("article", undefined, "stat " + key);
+      const isNotStarted = key === "notStarted";
+      const card = node(isNotStarted ? "button" : "article", undefined, "stat " + key);
       if (key === "completion") card.classList.add(completionBand(total));
+      if (isNotStarted) {
+        card.type = "button";
+        card.setAttribute("aria-controls", notStartedPanel.id);
+        card.setAttribute("aria-expanded", String(!notStartedPanel.hidden));
+        card.addEventListener("click", () => {
+          notStartedPanel.hidden = !notStartedPanel.hidden;
+          card.setAttribute("aria-expanded", String(!notStartedPanel.hidden));
+        });
+      }
       card.append(node("small", title), node("b", metricValue(summaryTotals, key)), node("span", detail));
       return card;
     }));
