@@ -173,3 +173,55 @@ tfoot{background:#e3f1e7;color:#214b3e}
   .views a:hover{text-decoration:underline}
   .views a[aria-current="page"]{background:var(--tab-bg);color:var(--tab-ink);border-color:white;box-shadow:inset 0 -3px var(--tab-ink)}
 }
+
+/* Dark dashboard surfaces */
+@media screen {
+  :root {
+    color-scheme: dark;
+    --back: #101916;
+    --paper: #172520;
+    --ink: #e6f1eb;
+    --muted: #a9c0b6;
+    --line: #344940;
+    --accent: #91dec2;
+  }
+
+  .sidebar { background: #0c1512; }
+  .hero {
+    background: radial-gradient(ellipse at top right, #255747, transparent 75%), #142e26;
+    box-shadow: none;
+  }
+
+  .panel, .status-panel, button, select { background: var(--paper); }
+  button, select { border-color: var(--line); }
+  .division-link { background: transparent; }
+  thead th, tfoot { background: #21382f; color: var(--ink); }
+  tbody tr:nth-child(even) { background: #1b2b25; }
+  tbody tr:hover, .status-link:hover, .status-link:focus-visible { background: #263d33; }
+  .bar-track { background: #2c3f37; }
+
+  .stat { --metric: #91dec2; --metric-bg: #1b3028; }
+  .stat.start { --metric: #8ed7e8; --metric-bg: #1a3034; }
+  .stat.intermediate { --metric: #cbb8f8; --metric-bg: #2b2539; }
+  .stat.end, .stat.new { --metric: #f5c28c; --metric-bg: #342a20; }
+  .stat.covered { --metric: #95e5b2; --metric-bg: #1b3429; border-color: var(--line); border-top-color: var(--metric); }
+  .completion-badge.low, .stat.completion.low, .stat.notStarted { --metric: #ffaab0; --metric-bg: #3a2429; }
+  .completion-badge.fair, .stat.completion.fair { --metric: #ffc18a; --metric-bg: #392a21; }
+  .completion-badge.good, .stat.completion.good { --metric: #f3d689; --metric-bg: #343020; }
+  .completion-badge.high, .stat.completion.high { --metric: #95e5b2; --metric-bg: #1b3429; }
+  .completion-badge.none, .stat.completion.none { --metric: #c0cddd; --metric-bg: #29323e; }
+
+  .status-head h2 { color: #95e5b2; }
+  .status-count { background: #1b3429; color: #95e5b2; }
+  .status-panel:nth-child(2) h2 { color: #f3d689; }
+  .status-panel:nth-child(2) .status-count { background: #343020; color: #f3d689; }
+  .below-average .status-head h2, .below-average-percent, .below-average .status-count { color: #ffaab0; }
+  .below-average .status-count { background: #3a2429; }
+}
+
+@media screen and (max-width: 760px) {
+  .views a[href="#overview"] { --tab-bg: #203d32; --tab-ink: #abebd2; }
+  .views a[href="#survey-status"] { --tab-bg: #3a3020; --tab-ink: #f5d58d; }
+  .views a[href="#road-details"] { --tab-bg: #312941; --tab-ink: #dac6fb; }
+  .views a[aria-current="page"] { border-color: var(--tab-ink); }
+}
