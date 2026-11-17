@@ -83,7 +83,26 @@ function initialize(report) {
   const division = $("division");
   const projects = new Map(report.divisions.map(row => [row.name, row]));
   for (const name of projects.keys()) division.add(new Option(name, name));
-  const notStartedPanel = $("not-started-panel");
+  const views = new Map(Array.from(document.querySelectorAll("[data-view]"), panel => [panel.dataset.view, panel]));
+  const navigation = document.querySelectorAll(".views a");
+  function showView(name, focusTarget) {
+    const active = views.has(name) ? name : "overview";
+    for (const [key, panel] of views) panel.hidden = key !== active;
+    for (const link of navigation) {
+      if (link.hash === "#" + active) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    }
+    if (location.hash !== "#" + active) history.replaceState(null, "", "#" + active);
+    (focusTarget || views.get(active).querySelector(".view-title")).focus();
+  }
+  for (const link of navigation) {
+    link.addEventListener("click", event => {
+      if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      showView(link.hash.slice(1));
+    });
+  }
+  window.addEventListener("hashchange", () => showView(location.hash.slice(1)));
   const notStartedByProject = report.divisions
     .map(project => ({name: project.name, ...sectionCounts(project.sections)}))
     .sort((a, b) => b.notStarted - a.notStarted || a.name.localeCompare(b.name));
@@ -96,18 +115,17 @@ function initialize(report) {
       node("span", count, "below-average-percent"));
     button.addEventListener("click", () => {
       select(project.name);
-      division.focus();
+      showView("road-details", division);
     });
     item.append(button);
     return item;
   }));
   function select(name) {
     $("road-panel").hidden = true;
-    notStartedPanel.hidden = true;
     division.value = projects.has(name) ? name : "";
     const query = new URLSearchParams();
     if (division.value) query.set("division", division.value);
-    history.replaceState(null, "", location.pathname + (query.size ? "?" + query : ""));
+    history.replaceState(null, "", location.pathname + (query.size ? "?" + query : "") + location.hash);
     render();
   }
   function showRoads(section) {
@@ -161,6 +179,7 @@ function initialize(report) {
   }
   function render() {
     const selected = projects.get(division.value);
+    $("overview-title").textContent = selected ? selected.name + " overview" : "Statewide overview";
     const rows = selected ? selected.sections : report.divisions;
     const total = selected || report.total;
     const counts = sectionCounts(selected ? rows : rows.flatMap(project => project.sections));
@@ -177,12 +196,8 @@ function initialize(report) {
       if (key === "completion") card.classList.add(completionBand(total));
       if (isNotStarted) {
         card.type = "button";
-        card.setAttribute("aria-controls", notStartedPanel.id);
-        card.setAttribute("aria-expanded", String(!notStartedPanel.hidden));
-        card.addEventListener("click", () => {
-          notStartedPanel.hidden = !notStartedPanel.hidden;
-          card.setAttribute("aria-expanded", String(!notStartedPanel.hidden));
-        });
+        card.setAttribute("aria-controls", "not-started-panel");
+        card.addEventListener("click", () => showView("survey-status", $("not-started-title")));
       }
       card.append(node("small", title), node("b", metricValue(summaryTotals, key)), node("span", detail));
       return card;
@@ -227,8 +242,8 @@ function initialize(report) {
       if (entry.completion) button.append(node("span", entry.completion, "below-average-percent"));
       button.addEventListener("click", () => {
         select(entry.project);
+        showView("road-details", division);
         if (entry.section) showRoads(entry.section);
-        else division.focus();
       });
       item.append(button);
       return item;
@@ -241,8 +256,10 @@ function initialize(report) {
   division.addEventListener("change", () => select(division.value));
   $("chart-mode").addEventListener("change", render);
 
-  select(new URLSearchParams(location.search).get("division"));
+  const initialDivision = new URLSearchParams(location.search).get("division");
+  select(initialDivision);
   $("report").hidden = false;
+  if (location.hash || initialDivision) showView(location.hash.slice(1) || "road-details");
 }
 fetch("report.json", {cache: "no-cache"}).then(response => {
   if (!response.ok) throw new Error("Report unavailable");

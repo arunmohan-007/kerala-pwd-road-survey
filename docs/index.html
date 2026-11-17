@@ -6,15 +6,21 @@
 <meta name="description" content="Kerala PWD and KHRI road network survey reporting by division and PWD section.">
 <meta name="theme-color" content="#ffffff">
 <title>Road Network Survey Using QField | Kerala PWD | KHRI</title>
-<link rel="stylesheet" href="styles.css">
-<script src="app.js" defer></script>
+<link rel="stylesheet" href="styles.css?v=sidebar">
+<script src="app.js?v=sidebar" defer></script>
 </head>
 <body>
-<header class="mast"><div class="shell mast-inner">
+<aside class="sidebar">
   <div class="brand"><span class="mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M11 27 14 5m7 22L18 5M16 26v-4m0-4v-4m0-4V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><div><strong>Kerala PWD</strong><small>PWD Road Network Survey</small></div></div>
   <div class="brand brand-partner"><strong>Kerala Highway Research Institute (KHRI)</strong></div>
-</div></header>
-<main class="shell">
+  <nav class="views" aria-label="Dashboard">
+    <a href="#overview" aria-current="page"><span aria-hidden="true">◫</span>Overview</a>
+    <a href="#survey-status"><span aria-hidden="true">◷</span>Survey status</a>
+    <a href="#road-details"><span aria-hidden="true">☷</span>Road details</a>
+  </nav>
+  <div class="exports"><a class="pdf" href="road-survey.pdf" download>↓ PDF</a><a href="road-survey.xlsx" download>↓ Excel</a></div>
+</aside>
+<div class="workspace"><main class="shell">
   <section class="hero">
     <h1 class="survey-title">Road Network Survey
       <span>Data Collection of Start, End and Intermediate Points Using QField</span>
@@ -23,6 +29,25 @@
     <div class="hero-meta"><span id="updated">Loading report…</span><span id="source"></span></div>
   </section>
   <div id="report" hidden>
+    <section data-view="overview">
+      <h2 class="view-title" id="overview-title" tabindex="-1">Statewide overview</h2>
+    <section class="summary" aria-label="Survey totals" id="summary"></section>
+    <section class="panel chart-panel" aria-labelledby="chart-title">
+      <div class="panel-head"><div><h2 id="chart-title">Road coverage</h2><p id="chart-detail"></p></div><label class="filter">Chart view<select id="chart-mode"><option value="roads">Road coverage</option><option value="points">Points surveyed</option></select></label></div>
+      <div class="legend" id="legend"></div><div id="chart" class="chart" role="list"></div>
+    </section>
+    </section>
+    <section data-view="survey-status" hidden>
+      <h2 class="view-title" tabindex="-1">Survey status</h2>
+    <section class="panel status-panel below-average" id="not-started-panel" aria-labelledby="not-started-title">
+      <div class="status-head"><h2 id="not-started-title" tabindex="-1">PWD sections yet to start by district and division</h2></div>
+      <ul id="not-started-list" class="status-list" tabindex="0" aria-labelledby="not-started-title"></ul>
+    </section>
+    <section class="panel status-panel below-average" aria-labelledby="below-average-title">
+      <div class="status-head"><h2 id="below-average-title">Divisions and districts below state average completion</h2><span id="below-average-count" class="status-count"></span></div>
+      <p id="state-average"></p>
+      <ul id="below-average-list" class="status-list" tabindex="0" aria-labelledby="below-average-title"></ul>
+    </section>
     <section class="status-grid" aria-label="Statewide survey status">
       <article class="panel status-panel">
         <div class="status-head"><h2 id="completed-title">PWD sections that completed the QField survey</h2><span id="completed-count" class="status-count"></span></div>
@@ -35,16 +60,9 @@
         <ul id="pending-list" class="status-list" tabindex="0" aria-labelledby="pending-title"></ul>
       </article>
     </section>
-    <section class="summary" aria-label="Survey totals" id="summary"></section>
-    <section class="panel status-panel below-average" id="not-started-panel" aria-labelledby="not-started-title" hidden>
-      <div class="status-head"><h2 id="not-started-title">PWD sections yet to start by district and division</h2></div>
-      <ul id="not-started-list" class="status-list" tabindex="0" aria-labelledby="not-started-title"></ul>
     </section>
-    <section class="panel status-panel below-average" aria-labelledby="below-average-title">
-      <div class="status-head"><h2 id="below-average-title">Divisions and districts below state average completion</h2><span id="below-average-count" class="status-count"></span></div>
-      <p id="state-average"></p>
-      <ul id="below-average-list" class="status-list" tabindex="0" aria-labelledby="below-average-title"></ul>
-    </section>
+    <section data-view="road-details" hidden>
+      <h2 class="view-title" tabindex="-1">Road details</h2>
     <div class="completion-legend" aria-label="Road completion color ranges">
       <strong>Road completion</strong>
       <span class="completion-badge low">0–24.9%</span>
@@ -57,7 +75,6 @@
         <div><h2 id="table-title">Division progress</h2><p id="table-detail">Select a division to see its PWD section report.</p></div>
         <div class="table-actions">
           <label class="filter">Reporting area<select id="division"><option value="">All divisions</option></select></label>
-          <div class="exports"><a class="pdf" href="road-survey.pdf" download>↓ PDF</a><a href="road-survey.xlsx" download>↓ Excel</a></div>
         </div>
       </div>
       <div class="table-wrap" tabindex="0" role="region" aria-label="Survey counts"><table>
@@ -72,10 +89,6 @@
         <tbody id="road-rows"></tbody>
       </table></div>
     </section>
-    <section class="panel chart-panel" aria-labelledby="chart-title">
-      <div class="panel-head"><div><h2 id="chart-title">Road coverage</h2><p id="chart-detail"></p></div><label class="filter">Chart view<select id="chart-mode"><option value="roads">Road coverage</option><option value="points">Points surveyed</option></select></label></div>
-      <div class="legend" id="legend"></div><div id="chart" class="chart" role="list"></div>
-    </section>
     <section class="notes">
       <h2>How the counts are calculated</h2>
       <p>Points recorded by RMMS Cell, RMMS Cell 2, or RMMS Cell 3 are excluded from this and future reports.</p>
@@ -83,9 +96,10 @@
       <p>New roads counts distinct manually entered road identities absent from the register. Spelling variations can affect this count. Ambiguous matches and incomplete identities are flagged for review.</p>
       <p id="quality"></p>
     </section>
+    </section>
   </div>
   <p id="error" role="alert" hidden>Unable to load the survey report. Reload the page to try again.</p>
 </main>
-<footer class="shell footer"><span>KERALA PUBLIC WORKS DEPARTMENT</span><span>Kerala Highway Research Institute</span></footer>
+<footer class="shell footer"><span>KERALA PUBLIC WORKS DEPARTMENT</span><span>Kerala Highway Research Institute</span></footer></div>
 </body>
 </html>
