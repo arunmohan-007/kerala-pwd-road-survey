@@ -22,6 +22,7 @@ const hasCompleted = section => section.listed > 0 && section.covered === sectio
 function sectionCounts(sections) {
   const assigned = sections.filter(section => !/^unassigned (?:pwd )?section$/i.test(section.name));
   return {
+    total: assigned.length,
     notStarted: assigned.filter(hasNotStarted).length,
     completed: assigned.filter(hasCompleted).length
   };
@@ -84,14 +85,15 @@ function initialize(report) {
   for (const name of projects.keys()) division.add(new Option(name, name));
   const notStartedPanel = $("not-started-panel");
   const notStartedByProject = report.divisions
-    .map(project => ({name: project.name, count: sectionCounts(project.sections).notStarted}))
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+    .map(project => ({name: project.name, ...sectionCounts(project.sections)}))
+    .sort((a, b) => b.notStarted - a.notStarted || a.name.localeCompare(b.name));
   $("not-started-list").append(...notStartedByProject.map(project => {
     const item = node("li");
     const button = node("button", undefined, "status-link");
     button.type = "button";
+    const count = `${format.format(project.notStarted)} out of ${format.format(project.total)}`;
     button.append(node("strong", project.name),
-      node("span", format.format(project.count), "below-average-percent"));
+      node("span", count, "below-average-percent"));
     button.addEventListener("click", () => {
       select(project.name);
       division.focus();
