@@ -164,3 +164,12 @@ tbody tr:hover,.status-link:hover,.status-link:focus-visible{background:#eef6ef}
 tfoot{background:#e3f1e7;color:#214b3e}
 .bar-track{background:#e4ede6}
 @media print{.hero{background:white;box-shadow:none}.hero .survey-title span,.hero p,.hero-meta span{color:#344c43}}
+
+@media(max-width:760px){
+  .views a[href="#overview"]{--tab-bg:#d9f3e7;--tab-ink:#164c3d}
+  .views a[href="#survey-status"]{--tab-bg:#ffe5ad;--tab-ink:#623c08}
+  .views a[href="#road-details"]{--tab-bg:#e6dafa;--tab-ink:#48316f}
+  .views a{background:var(--tab-bg);color:var(--tab-ink);border:2px solid transparent}
+  .views a:hover{text-decoration:underline}
+  .views a[aria-current="page"]{background:var(--tab-bg);color:var(--tab-ink);border-color:white;box-shadow:inset 0 -3px var(--tab-ink)}
+}
