@@ -37,8 +37,8 @@ const metrics = [
   ["new", "New roads", "Outside the register"]
 ];
 const chartSeries = {
-  roads: [["covered", "Covered", "#0b57d0"], ["remaining", "Without both matched endpoints", "#c2d7f8"]],
-  points: [["start", "Start", "#0b57d0"], ["intermediate", "Intermediate", "#4285f4"], ["end", "End", "#188038"], ["unknown", "Unclassified", "#7a6c85"]]
+  roads: [["covered", "Covered", "#087763"], ["remaining", "Without both matched endpoints", "#c6dfd2"]],
+  points: [["start", "Start", "#087763"], ["intermediate", "Intermediate", "#408398"], ["end", "End", "#9b5a25"], ["unknown", "Unclassified", "#7a6c85"]]
 };
 function node(tag, value, className) {
   const el = document.createElement(tag);
