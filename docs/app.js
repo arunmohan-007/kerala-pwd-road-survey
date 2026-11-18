@@ -200,17 +200,29 @@ function initialize(report) {
   }
   function showNewRoads(divisionName, section) {
     const divisions = divisionName ? [projects.get(divisionName)] : report.divisions;
-    const rows = divisions.flatMap(project => (section ? [section] : project.sections)
-      .flatMap(area => (area.newRoadList || []).map(road => {
-        const row = node("tr");
-        row.append(...[project.name, area.name, road.name, (road.pointIds || []).join(", "), road.remarks]
-          .map(value => node("td", value)));
-        return row;
-      })));
+    const values = divisions.flatMap(project => (section ? [section] : project.sections)
+      .flatMap(area => (area.newRoadList || []).map(road =>
+        [project.name, area.name, road.name, (road.pointIds || []).join(", "), road.remarks])))
+      .map((row, index) => [index + 1, ...row]);
+    const rows = values.map(values => {
+      const row = node("tr");
+      row.append(...values.map(value => node("td", value)));
+      return row;
+    });
+    const download = $("new-road-download");
+    const headers = Array.from($("new-road-panel").querySelectorAll("thead th"), th => th.textContent);
+    const csv = [headers, ...values].map(row => row.map(value => {
+      const text = String(value);
+      const safe = /^[\s]*[=+@-]|^[\t\r\n]/.test(text) ? "'" + text : text;
+      return '"' + safe.replaceAll('"', '""') + '"';
+    }).join(",")).join("\r\n");
+    if (download.href.startsWith("blob:")) URL.revokeObjectURL(download.href);
+    download.href = URL.createObjectURL(new Blob(["\uFEFF", csv], {type: "text/csv;charset=utf-8"}));
+    download.download = ["Newly added roads", divisionName, section?.name].filter(Boolean).join(" - ") + ".csv";
     if (!rows.length) {
       const row = node("tr");
       const cell = node("td", "No new roads or same-name register matches in this area.");
-      cell.colSpan = 5;
+      cell.colSpan = headers.length;
       row.append(cell);
       rows.push(row);
     }
