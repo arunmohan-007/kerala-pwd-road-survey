@@ -201,7 +201,7 @@ function initialize(report) {
   function newRoadValues(divisionName, section) {
     const divisions = divisionName ? [projects.get(divisionName)] : report.divisions;
     return divisions.flatMap(project => (section ? [section] : project.sections)
-      .flatMap(area => (area.newRoadList || []).map(road =>
+      .flatMap(area => (area.newRoadList || []).filter(road => !road.remarks).map(road =>
         [project.name, area.name, road.name, (road.pointIds || []).join(", "), road.remarks])))
       .map((row, index) => [index + 1, ...row]);
   }
@@ -218,9 +218,7 @@ function initialize(report) {
   }
   function showNewRoads(divisionName, section) {
     const values = newRoadValues(divisionName, section);
-    const matches = values.filter(row => row.at(-1)).length;
-    $("new-road-breakdown").textContent =
-      `${format.format(values.length)} rows · ${format.format(values.length - matches)} new roads · ${format.format(matches)} same-name register matches`;
+    $("new-road-breakdown").textContent = `${format.format(values.length)} new roads`;
     setNewRoadDownload($("new-road-download"), values, divisionName, section);
     const rows = values.map(values => {
       const row = node("tr");
@@ -229,7 +227,7 @@ function initialize(report) {
     });
     if (!rows.length) {
       const row = node("tr");
-      const cell = node("td", "No new roads or same-name register matches in this area.");
+      const cell = node("td", "No new roads in this area.");
       cell.colSpan = newRoadHeaders.length;
       row.append(cell);
       rows.push(row);
