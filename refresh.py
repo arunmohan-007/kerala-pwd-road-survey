@@ -104,7 +104,10 @@ def division(manifest_path, name):
             identity = (road, road_class, number if road_class == "sh" else "")
             candidates = register[key, road]
             if not selected:
-                manual_names[key].setdefault(identity, display_name)
+                entry = manual_names[key].setdefault(identity, {"name": display_name, "pointIds": []})
+                identifier = str(point_id or "").strip()
+                if identifier and identifier not in entry["pointIds"]:
+                    entry["pointIds"].append(identifier)
             matches = [fid for fid, cls, num in candidates
                        if (not cls or cls == road_class)
                        and (road_class != "sh" or not num or num == number)]
@@ -133,8 +136,8 @@ def division(manifest_path, name):
                                   if {"start", "end"} <= types})
         section["new"] = len(added[key] - review[key])
         section["newRoadList"] = sorted(
-            ({"name": name, "remarks": "Same road name in this section's register" if register[key, identity[0]] else ""}
-             for identity, name in manual_names[key].items()
+            ({**entry, "remarks": "Same road name in this section's register" if register[key, identity[0]] else ""}
+             for identity, entry in manual_names[key].items()
              if identity in added[key] - review[key] or register[key, identity[0]]),
             key=lambda entry: entry["name"].casefold(),
         )

@@ -203,13 +203,14 @@ function initialize(report) {
     const rows = divisions.flatMap(project => (section ? [section] : project.sections)
       .flatMap(area => (area.newRoadList || []).map(road => {
         const row = node("tr");
-        row.append(...[project.name, area.name, road.name, road.remarks].map(value => node("td", value)));
+        row.append(...[project.name, area.name, road.name, (road.pointIds || []).join(", "), road.remarks]
+          .map(value => node("td", value)));
         return row;
       })));
     if (!rows.length) {
       const row = node("tr");
       const cell = node("td", "No new roads or same-name register matches in this area.");
-      cell.colSpan = 4;
+      cell.colSpan = 5;
       row.append(cell);
       rows.push(row);
     }
