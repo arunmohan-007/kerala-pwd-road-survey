@@ -153,6 +153,7 @@ function initialize(report) {
   }));
   function select(name) {
     $("road-panel").hidden = true;
+    $("new-road-panel").hidden = true;
     sortKey = "completion";
     sortDirection = 1;
     division.value = projects.has(name) ? name : "";
@@ -162,6 +163,7 @@ function initialize(report) {
     render();
   }
   function showRoads(section) {
+    $("new-road-panel").hidden = true;
     const roads = section.roads || [];
     const project = projects.get(division.value);
     const pdf = $("road-pdf");
@@ -196,7 +198,27 @@ function initialize(report) {
     cell.append(node("span", metricValue(row, "completion"), "completion-badge " + completionBand(row)));
     return cell;
   }
-  function tableRow(row, onClick, counts) {
+  function showNewRoads(divisionName, section) {
+    const divisions = divisionName ? [projects.get(divisionName)] : report.divisions;
+    const rows = divisions.flatMap(project => (section ? [section] : project.sections)
+      .flatMap(area => (area.newRoadList || []).map(road => {
+        const row = node("tr");
+        row.append(...[project.name, area.name, road.name, road.remarks].map(value => node("td", value)));
+        return row;
+      })));
+    if (!rows.length) {
+      const row = node("tr");
+      const cell = node("td", "No new roads or same-name register matches in this area.");
+      cell.colSpan = 4;
+      row.append(cell);
+      rows.push(row);
+    }
+    $("new-road-rows").replaceChildren(...rows);
+    $("road-panel").hidden = true;
+    $("new-road-panel").hidden = false;
+    showView("road-details", $("new-road-title"));
+  }
+  function tableRow(row, onClick, counts, onNewRoads) {
     const tr = node("tr");
     const heading = node("th");
     heading.scope = "row";
@@ -209,8 +231,17 @@ function initialize(report) {
       button.addEventListener("click", onClick);
       heading.append(button);
     } else heading.textContent = row.name;
-    tr.append(heading, ...metrics.map(([key]) => key === "completion"
-      ? completionCell(row) : node("td", metricValue(row, key))));
+    tr.append(heading, ...metrics.map(([key]) => {
+      if (key === "completion") return completionCell(row);
+      if (key !== "new") return node("td", metricValue(row, key));
+      const cell = node("td");
+      const button = node("button", metricValue(row, key), "division-link");
+      button.type = "button";
+      button.setAttribute("aria-label", `View new roads for ${row.name}`);
+      button.addEventListener("click", onNewRoads);
+      cell.append(button);
+      return cell;
+    }));
     if (counts) tr.append(node("td", format.format(counts.notStarted)), node("td", format.format(counts.completed)));
     return tr;
   }
@@ -234,12 +265,18 @@ function initialize(report) {
     const summaryTotals = {...total, notStarted: counts.notStarted};
     $("summary").replaceChildren(...summaryMetrics.map(([key, title, detail]) => {
       const isNotStarted = key === "notStarted";
-      const card = node(isNotStarted ? "button" : "article", undefined, "stat " + key);
+      const isNewRoads = key === "new";
+      const card = node(isNotStarted || isNewRoads ? "button" : "article", undefined, "stat " + key);
       if (key === "completion") card.classList.add(completionBand(total));
       if (isNotStarted) {
         card.type = "button";
         card.setAttribute("aria-controls", "not-started-panel");
         card.addEventListener("click", () => showView("survey-status", $("not-started-title")));
+      }
+      if (isNewRoads) {
+        card.type = "button";
+        card.setAttribute("aria-controls", "new-road-panel");
+        card.addEventListener("click", () => showNewRoads(selected?.name));
       }
       card.append(node("small", title), node("b", metricValue(summaryTotals, key)), node("span", detail));
       return card;
@@ -248,8 +285,10 @@ function initialize(report) {
     sorted.sort((a, b) => compareProgress(a, b, sortKey, sortDirection));
     $("rows").replaceChildren(...sorted.map(({row, counts: rowCounts}) => tableRow(row, selected
       ? () => showRoads(row)
-      : () => { select(row.name); division.focus(); }, rowCounts)));
-    $("totals").replaceChildren(tableRow({...total, name: selected ? "Division total" : total.name}, null, selected ? null : counts));
+      : () => { select(row.name); division.focus(); }, rowCounts,
+      () => showNewRoads(selected?.name || row.name, selected ? row : null))));
+    $("totals").replaceChildren(tableRow({...total, name: selected ? "Division total" : total.name}, null, selected ? null : counts,
+      () => showNewRoads(selected?.name)));
     const exclusions = selected
       ? format.format(total.excluded) + " in " + selected.name + ", " + format.format(report.total.excluded) + " statewide"
       : format.format(report.total.excluded) + " statewide";

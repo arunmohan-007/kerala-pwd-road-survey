@@ -61,6 +61,7 @@ def division(manifest_path, name):
     register = defaultdict(list)
     endpoints = defaultdict(lambda: defaultdict(set))
     added = defaultdict(set)
+    manual_names = defaultdict(dict)
     review = defaultdict(set)
     invalid = defaultdict(int)
     roads = defaultdict(dict)
@@ -102,6 +103,8 @@ def division(manifest_path, name):
                 continue
             identity = (road, road_class, number if road_class == "sh" else "")
             candidates = register[key, road]
+            if not selected:
+                manual_names[key].setdefault(identity, display_name)
             matches = [fid for fid, cls, num in candidates
                        if (not cls or cls == road_class)
                        and (road_class != "sh" or not num or num == number)]
@@ -129,6 +132,12 @@ def division(manifest_path, name):
         section["covered"] = len({fid for (fid, _), types in endpoints[key].items()
                                   if {"start", "end"} <= types})
         section["new"] = len(added[key] - review[key])
+        section["newRoadList"] = sorted(
+            ({"name": name, "remarks": "Same road name in this section's register" if register[key, identity[0]] else ""}
+             for identity, name in manual_names[key].items()
+             if identity in added[key] - review[key] or register[key, identity[0]]),
+            key=lambda entry: entry["name"].casefold(),
+        )
         section["review"] = len(review[key]) + invalid[key]
         for identity in added[key] - review[key]:
             roads[key][identity]["name"] += " (New)"
