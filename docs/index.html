@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#101916">
 <title>Road Network Survey Using QField | Kerala PWD | KHRI</title>
 <link rel="stylesheet" href="styles.css?v=progress-sort">
-<script src="app.js?v=new-road-download-visible" defer></script>
+<script src="app.js?v=new-road-count-breakdown" defer></script>
 </head>
 <body>
 <aside class="sidebar">
@@ -107,7 +107,7 @@
     </section>
     <section class="panel" id="new-road-panel" aria-labelledby="new-road-title" hidden>
       <div class="panel-head">
-        <div><h2 id="new-road-title" tabindex="-1">New road list</h2><p>Same-name register matches are flagged in Remarks and shown alongside new roads.</p></div>
+        <div><h2 id="new-road-title" tabindex="-1">New road list</h2><p id="new-road-breakdown"></p></div>
         <div class="exports"><a id="new-road-download" download>↓ Download New Roads Report (CSV)</a></div>
       </div>
       <div class="table-wrap" tabindex="0" role="region" aria-labelledby="new-road-title"><table class="road-table">

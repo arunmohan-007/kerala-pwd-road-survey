@@ -218,6 +218,9 @@ function initialize(report) {
   }
   function showNewRoads(divisionName, section) {
     const values = newRoadValues(divisionName, section);
+    const matches = values.filter(row => row.at(-1)).length;
+    $("new-road-breakdown").textContent =
+      `${format.format(values.length)} rows · ${format.format(values.length - matches)} new roads · ${format.format(matches)} same-name register matches`;
     setNewRoadDownload($("new-road-download"), values, divisionName, section);
     const rows = values.map(values => {
       const row = node("tr");
