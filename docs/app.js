@@ -130,6 +130,10 @@ function initialize(report) {
   }
   function showRoads(section) {
     const roads = section.roads || [];
+    const project = projects.get(division.value);
+    const pdf = $("road-pdf");
+    pdf.href = `section-pdfs/${report.divisions.indexOf(project) + 1}-${project.sections.indexOf(section) + 1}.pdf`;
+    pdf.download = `${project.name} - ${section.name} - Road-wise report.pdf`;
     $("road-title").textContent = section.name + " · Road details";
     $("road-detail").textContent = roads.length ? format.format(roads.length) + " roads"
       : "No road details available for this section.";

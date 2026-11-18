@@ -41,6 +41,56 @@ def table(first, rows, total):
     return result
 
 
+def section_reports(report, footer, title, body):
+    folder = HERE / "docs" / "section-pdfs"
+    folder.mkdir(exist_ok=True)
+    published = set()
+    cell = ParagraphStyle("Road details", parent=body, fontSize=9, leading=12)
+    for division_index, division in enumerate(report["divisions"], 1):
+        for section_index, section in enumerate(division["sections"], 1):
+            story = [
+                Paragraph(escape(division["name"]), body),
+                Paragraph(escape(section["name"]), title),
+                Paragraph("Road-wise report | Cloud verified " + stamp(division["verifiedAt"]), body),
+                Spacer(1, 11),
+            ]
+            roads = section.get("roads", [])
+            if roads:
+                rows = [["Road name", "Start points", "End points", "Intermediate points", "Stretch limits"]]
+                for road in roads:
+                    row = [Paragraph(escape(road.get("name") or "Unnamed road"), cell)]
+                    for key in ("start", "end", "intermediate", "stretch"):
+                        points = road.get(key, [])
+                        lines = [str(len(points)) if points else "-"]
+                        lines.extend(escape(location) for location in points if location)
+                        row.append(Paragraph("<br/>".join(lines), cell))
+                    rows.append(row)
+                details = Table(rows, colWidths=[184, 136, 136, 154, 154],
+                                repeatRows=1, splitInRow=1)
+                details.setStyle(TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, 0), GREEN),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 5),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                ]))
+                story.append(details)
+            else:
+                story.append(Paragraph("No road details available for this section.", body))
+            target = folder / f"{division_index}-{section_index}.pdf"
+            temporary = target.with_suffix(".pdf.tmp")
+            SimpleDocTemplate(str(temporary), pagesize=landscape(A4), leftMargin=32,
+                              rightMargin=32, topMargin=32, bottomMargin=37,
+                              title=section["name"] + " - Road-wise report").build(
+                                  story, onFirstPage=footer, onLaterPages=footer)
+            temporary.replace(target)
+            published.add(target)
+    for stale in set(folder.glob("*.pdf")) - published:
+        stale.unlink()
+
+
 def main(source):
     report = json.loads(source.read_text(encoding="utf-8"))
     styles = getSampleStyleSheet()
@@ -86,6 +136,7 @@ def main(source):
                       title="Kerala PWD and KHRI - Road Network Survey").build(
                           story, onFirstPage=footer, onLaterPages=footer)
     temporary.replace(target)
+    section_reports(report, footer, title, body)
 
 
 if __name__ == "__main__":

@@ -22,8 +22,9 @@ The build uses Python with ReportLab and Node with the Codex workspace dependenc
 point to the bundled workspace node_modules. GitHub Pages serves the generated
 files directly and has no runtime dependencies.
 
-After a successful refresh, review docs/report.json, docs/road-survey.xlsx and
-docs/road-survey.pdf. Commit these three files together and push main. The site
+After a successful refresh, review docs/report.json, docs/road-survey.xlsx,
+docs/road-survey.pdf and docs/section-pdfs/. Commit the report and all generated
+exports together and push main. The site
 shows both the report build time and the cloud verification time in IST.
 
 For an intentional rebuild from a prior complete verified batch, add
