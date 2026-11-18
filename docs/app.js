@@ -262,9 +262,13 @@ function initialize(report) {
     .filter(hasCompleted)
     .map(section => ({name: section.name, project: project.name, section})))
     .sort((a, b) => a.name.localeCompare(b.name));
-  const pending = report.divisions
-    .filter(hasNotStarted)
-    .map(row => ({name: row.name, project: row.name}));
+  const completedByDivision = report.divisions
+    .map(({name, sections}) => ({name, project: name, ...sectionCounts(sections)}))
+    .sort((a, b) => b.completed - a.completed || a.name.localeCompare(b.name))
+    .map(entry => ({
+      ...entry,
+      completion: `${format.format(entry.completed)} out of ${format.format(entry.total)}`
+    }));
   const statewide = report.total;
   $("state-average").textContent = "State average " + metricValue(statewide, "completion");
   const belowAverage = report.divisions
@@ -273,10 +277,11 @@ function initialize(report) {
     .map(row => ({name: row.name, project: row.name, completion: metricValue(row, "completion")}));
   for (const [id, entries, empty] of [
     ["completed", completed, "No PWD sections have completed the survey."],
-    ["pending", pending, "All divisions and districts have started."],
+    ["completed-by-division", completedByDivision, "No divisions or districts available."],
     ["below-average", belowAverage, "No divisions or districts are below the state average."]
   ]) {
-    $(id + "-count").textContent = format.format(entries.length);
+    const count = $(id + "-count");
+    if (count) count.textContent = format.format(entries.length);
     const items = entries.map(entry => {
       const item = node("li");
       const button = node("button", undefined, "status-link");
