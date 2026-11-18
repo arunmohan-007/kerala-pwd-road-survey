@@ -198,20 +198,16 @@ function initialize(report) {
     cell.append(node("span", metricValue(row, "completion"), "completion-badge " + completionBand(row)));
     return cell;
   }
-  function showNewRoads(divisionName, section) {
+  function newRoadValues(divisionName, section) {
     const divisions = divisionName ? [projects.get(divisionName)] : report.divisions;
-    const values = divisions.flatMap(project => (section ? [section] : project.sections)
+    return divisions.flatMap(project => (section ? [section] : project.sections)
       .flatMap(area => (area.newRoadList || []).map(road =>
         [project.name, area.name, road.name, (road.pointIds || []).join(", "), road.remarks])))
       .map((row, index) => [index + 1, ...row]);
-    const rows = values.map(values => {
-      const row = node("tr");
-      row.append(...values.map(value => node("td", value)));
-      return row;
-    });
-    const download = $("new-road-download");
-    const headers = Array.from($("new-road-panel").querySelectorAll("thead th"), th => th.textContent);
-    const csv = [headers, ...values].map(row => row.map(value => {
+  }
+  const newRoadHeaders = Array.from($("new-road-panel").querySelectorAll("thead th"), th => th.textContent);
+  function setNewRoadDownload(download, values, divisionName, section) {
+    const csv = [newRoadHeaders, ...values].map(row => row.map(value => {
       const text = String(value);
       const safe = /^[\s]*[=+@-]|^[\t\r\n]/.test(text) ? "'" + text : text;
       return '"' + safe.replaceAll('"', '""') + '"';
@@ -219,10 +215,19 @@ function initialize(report) {
     if (download.href.startsWith("blob:")) URL.revokeObjectURL(download.href);
     download.href = URL.createObjectURL(new Blob(["\uFEFF", csv], {type: "text/csv;charset=utf-8"}));
     download.download = ["Newly added roads", divisionName, section?.name].filter(Boolean).join(" - ") + ".csv";
+  }
+  function showNewRoads(divisionName, section) {
+    const values = newRoadValues(divisionName, section);
+    setNewRoadDownload($("new-road-download"), values, divisionName, section);
+    const rows = values.map(values => {
+      const row = node("tr");
+      row.append(...values.map(value => node("td", value)));
+      return row;
+    });
     if (!rows.length) {
       const row = node("tr");
       const cell = node("td", "No new roads or same-name register matches in this area.");
-      cell.colSpan = headers.length;
+      cell.colSpan = newRoadHeaders.length;
       row.append(cell);
       rows.push(row);
     }
@@ -260,6 +265,7 @@ function initialize(report) {
   }
   function render() {
     const selected = projects.get(division.value);
+    setNewRoadDownload($("progress-new-road-download"), newRoadValues(selected?.name), selected?.name);
     $("overview-title").textContent = selected ? selected.name + " overview" : "Statewide overview";
     const rows = selected ? selected.sections : report.divisions;
     const total = selected || report.total;
