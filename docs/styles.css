@@ -225,3 +225,19 @@ tfoot{background:#e3f1e7;color:#214b3e}
   .views a[href="#road-details"] { --tab-bg: #312941; --tab-ink: #dac6fb; }
   .views a[aria-current="page"] { border-color: var(--tab-ink); }
 }
+
+.progress-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: .35em;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+.progress-sort:hover span:first-child { text-decoration: underline; }
+.sort-marker { opacity: .65; }
+th[aria-sort] .sort-marker { opacity: 1; }

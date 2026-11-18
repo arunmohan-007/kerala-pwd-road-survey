@@ -17,6 +17,19 @@ function completionBand(row) {
   if (rate < 75) return "good";
   return "high";
 }
+function compareProgress(a, b, key, direction) {
+  const byName = a.row.name.localeCompare(b.row.name, "en-IN");
+  if (key === "name") return direction * byName;
+  if (key === "completion") {
+    const missingA = Number(!a.row.listed);
+    const missingB = Number(!b.row.listed);
+    if (missingA !== missingB) return missingA - missingB;
+    if (missingA) return byName;
+    return direction * (a.row.covered * b.row.listed - b.row.covered * a.row.listed) || byName;
+  }
+  const value = entry => entry.counts?.[key] ?? entry.row[key];
+  return direction * (value(a) - value(b)) || byName;
+}
 const hasNotStarted = row => row.start + row.intermediate + row.end + row.unknown === 0;
 const hasCompleted = section => section.listed > 0 && section.covered === section.listed;
 function sectionCounts(sections) {
@@ -82,6 +95,24 @@ function paintChart(rows, isDivision) {
 function initialize(report) {
   const division = $("division");
   const projects = new Map(report.divisions.map(row => [row.name, row]));
+  let sortKey = "completion";
+  let sortDirection = 1;
+  const sortHeaders = Array.from(document.querySelectorAll("[data-sort]"), header => {
+    const key = header.dataset.sort;
+    const label = node("span", header.textContent);
+    const marker = node("span", "", "sort-marker");
+    marker.setAttribute("aria-hidden", "true");
+    const button = node("button", undefined, "progress-sort");
+    button.type = "button";
+    button.append(label, marker);
+    button.addEventListener("click", () => {
+      sortDirection = sortKey === key ? -sortDirection : 1;
+      sortKey = key;
+      render();
+    });
+    header.replaceChildren(button);
+    return {header, key, label, marker};
+  });
   for (const name of projects.keys()) division.add(new Option(name, name));
   const views = new Map(Array.from(document.querySelectorAll("[data-view]"), panel => [panel.dataset.view, panel]));
   const navigation = document.querySelectorAll(".views a");
@@ -122,6 +153,8 @@ function initialize(report) {
   }));
   function select(name) {
     $("road-panel").hidden = true;
+    sortKey = "completion";
+    sortDirection = 1;
     division.value = projects.has(name) ? name : "";
     const query = new URLSearchParams();
     if (division.value) query.set("division", division.value);
@@ -189,7 +222,12 @@ function initialize(report) {
     const counts = sectionCounts(selected ? rows : rows.flatMap(project => project.sections));
     for (const header of document.querySelectorAll("[data-division-count]")) header.hidden = Boolean(selected);
     $("table-title").textContent = selected ? selected.name + " · PWD sections" : "Division progress";
-    $("group-heading").textContent = selected ? "PWD section" : "Division";
+    for (const {header, key, label, marker} of sortHeaders) {
+      if (key === "name") label.textContent = selected ? "PWD section" : "Division";
+      if (key === sortKey) header.setAttribute("aria-sort", sortDirection === 1 ? "ascending" : "descending");
+      else header.removeAttribute("aria-sort");
+      marker.textContent = key === sortKey ? (sortDirection === 1 ? "↑" : "↓") : "↕";
+    }
     $("table-detail").textContent = selected ? format.format(counts.notStarted) + " PWD sections not started · " + format.format(counts.completed) + " PWD sections completed · Select a PWD section to see its roads · Verified " + when(selected.verifiedAt)
       : report.divisions.length + " divisions · Select a division to see its PWD sections.";
     const summaryMetrics = [...metrics, ["notStarted", "PWD sections yet to start", "Click to view"]];
@@ -206,9 +244,11 @@ function initialize(report) {
       card.append(node("small", title), node("b", metricValue(summaryTotals, key)), node("span", detail));
       return card;
     }));
-    $("rows").replaceChildren(...rows.map(row => tableRow(row, selected
+    const sorted = rows.map(row => ({row, counts: selected ? null : sectionCounts(row.sections)}));
+    sorted.sort((a, b) => compareProgress(a, b, sortKey, sortDirection));
+    $("rows").replaceChildren(...sorted.map(({row, counts: rowCounts}) => tableRow(row, selected
       ? () => showRoads(row)
-      : () => { select(row.name); division.focus(); }, selected ? null : sectionCounts(row.sections))));
+      : () => { select(row.name); division.focus(); }, rowCounts)));
     $("totals").replaceChildren(tableRow({...total, name: selected ? "Division total" : total.name}, null, selected ? null : counts));
     const exclusions = selected
       ? format.format(total.excluded) + " in " + selected.name + ", " + format.format(report.total.excluded) + " statewide"
