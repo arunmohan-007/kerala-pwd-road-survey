@@ -23,7 +23,7 @@ point to the bundled workspace node_modules. GitHub Pages serves the generated
 files directly and has no runtime dependencies.
 
 After a successful refresh, review docs/report.json, docs/road-survey.xlsx,
-docs/road-survey.pdf and docs/section-pdfs/. Commit the report and all generated
+docs/road-survey.pdf, docs/section-pdfs/ and docs/new-road-pdfs/. Commit the report and all generated
 exports together and push main. The site
 shows both the report build time and the cloud verification time in IST.
 

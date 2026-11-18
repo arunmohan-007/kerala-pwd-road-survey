@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#101916">
 <title>Road Network Survey Using QField | Kerala PWD | KHRI</title>
 <link rel="stylesheet" href="styles.css?v=progress-sort">
-<script src="app.js?v=counted-new-roads" defer></script>
+<script src="app.js?v=new-road-pdf" defer></script>
 </head>
 <body>
 <aside class="sidebar">
@@ -73,7 +73,7 @@
     <section class="panel" aria-labelledby="table-title">
       <div class="panel-head">
         <div><h2 id="table-title">Division progress</h2><p id="table-detail">Select a division to see its PWD section report.</p>
-          <div class="exports"><a id="progress-new-road-download" download>↓ Download New Roads Report (CSV)</a></div>
+          <div class="exports"><a id="progress-new-road-download" download>↓ Download New Roads Report (CSV)</a><a id="progress-new-road-download-pdf" download>↓ PDF</a></div>
         </div>
         <div class="table-actions">
           <label class="filter">Reporting area<select id="division"><option value="">All divisions</option></select></label>
@@ -108,7 +108,7 @@
     <section class="panel" id="new-road-panel" aria-labelledby="new-road-title" hidden>
       <div class="panel-head">
         <div><h2 id="new-road-title" tabindex="-1">New road list</h2><p id="new-road-breakdown"></p></div>
-        <div class="exports"><a id="new-road-download" download>↓ Download New Roads Report (CSV)</a></div>
+        <div class="exports"><a id="new-road-download" download>↓ Download New Roads Report (CSV)</a><a id="new-road-download-pdf" download>↓ PDF</a></div>
       </div>
       <div class="table-wrap" tabindex="0" role="region" aria-labelledby="new-road-title"><table class="road-table">
         <thead><tr><th scope="col">Sl. No.</th><th scope="col">Division / district name</th><th scope="col">Section name</th><th scope="col">Newly added road name</th><th scope="col">Point ID</th><th scope="col">Remarks</th></tr></thead>

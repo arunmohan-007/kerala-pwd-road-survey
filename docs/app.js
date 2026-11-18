@@ -214,7 +214,15 @@ function initialize(report) {
     }).join(",")).join("\r\n");
     if (download.href.startsWith("blob:")) URL.revokeObjectURL(download.href);
     download.href = URL.createObjectURL(new Blob(["\uFEFF", csv], {type: "text/csv;charset=utf-8"}));
-    download.download = ["Newly added roads", divisionName, section?.name].filter(Boolean).join(" - ") + ".csv";
+    const filename = ["Newly added roads", divisionName, section?.name].filter(Boolean).join(" - ");
+    download.download = filename + ".csv";
+    const project = projects.get(divisionName);
+    const divisionIndex = report.divisions.indexOf(project) + 1;
+    const scope = section ? `${divisionIndex}-${project.sections.indexOf(section) + 1}`
+      : divisionIndex || "statewide";
+    const pdf = $(download.id + "-pdf");
+    pdf.href = `new-road-pdfs/${values.length ? scope : "empty"}.pdf`;
+    pdf.download = filename + ".pdf";
   }
   function showNewRoads(divisionName, section) {
     const values = newRoadValues(divisionName, section);

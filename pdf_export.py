@@ -41,6 +41,58 @@ def table(first, rows, total):
     return result
 
 
+def new_road_reports(report, footer, title, body):
+    folder = HERE / "docs" / "new-road-pdfs"
+    folder.mkdir(exist_ok=True)
+    published = set()
+    cell = ParagraphStyle("New road cell", parent=body, fontSize=9, leading=12)
+    headings = ["Sl. No.", "Division / district", "Section", "Newly added road", "Point ID", "Remarks"]
+
+    def write(key, area, roads):
+        story = [Paragraph("New Roads Report", title), Paragraph(escape(area), body),
+                 Paragraph(f"{len(roads)} new roads | Verified through {stamp(report['sourceThrough'])}", body),
+                 Spacer(1, 11)]
+        if roads:
+            rows = [headings]
+            rows.extend([Paragraph(escape(str(value)), cell) for value in (i, *row)]
+                        for i, row in enumerate(roads, 1))
+            grid = Table(rows, colWidths=[42, 122, 105, 220, 155, 120], repeatRows=1, splitInRow=1)
+            grid.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), GREEN),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ]))
+            story.append(grid)
+        target = folder / f"{key}.pdf"
+        temporary = target.with_suffix(".pdf.tmp")
+        SimpleDocTemplate(str(temporary), pagesize=landscape(A4), leftMargin=32,
+                          rightMargin=32, topMargin=32, bottomMargin=37,
+                          title=f"New Roads Report - {area}").build(
+                              story, onFirstPage=footer, onLaterPages=footer)
+        temporary.replace(target)
+        published.add(target)
+
+    statewide = []
+    for i, division in enumerate(report["divisions"], 1):
+        division_roads = []
+        for j, section in enumerate(division["sections"], 1):
+            roads = [(division["name"], section["name"], road["name"],
+                      ", ".join(road.get("pointIds", [])), road["remarks"])
+                     for road in section.get("newRoadList", []) if not road["remarks"]]
+            if roads:
+                write(f"{i}-{j}", f'{division["name"]} / {section["name"]}', roads)
+            division_roads.extend(roads)
+        if division_roads:
+            write(i, division["name"], division_roads)
+        statewide.extend(division_roads)
+    write("statewide", "Kerala", statewide)
+    write("empty", "No new roads in the selected area", [])
+    for stale in set(folder.glob("*.pdf")) - published:
+        stale.unlink()
+
+
 def section_reports(report, footer, title, body):
     folder = HERE / "docs" / "section-pdfs"
     folder.mkdir(exist_ok=True)
@@ -137,6 +189,7 @@ def main(source):
                           story, onFirstPage=footer, onLaterPages=footer)
     temporary.replace(target)
     section_reports(report, footer, title, body)
+    new_road_reports(report, footer, title, body)
 
 
 if __name__ == "__main__":
