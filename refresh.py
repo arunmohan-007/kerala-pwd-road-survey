@@ -120,6 +120,9 @@ def division(manifest_path, name):
                 if point_type == "intermediate" and STRETCH_LIMIT.search(normalized(remarks)):
                     column = "stretch"
                     point_label = " · ".join(filter(None, (point_label, str(remarks).strip())))
+                identifier = str(point_id or "").strip()
+                if identifier:
+                    point_label = " · ".join(filter(None, (point_label, f"ID {identifier}")))
                 road_row.setdefault(column, []).append(point_label)
 
     for key, section in sections.items():
