@@ -17,6 +17,10 @@ IST = timezone(timedelta(hours=5, minutes=30))
 METRICS = ("listed", "start", "intermediate", "end", "covered", "new", "unknown", "review", "excluded")
 TYPES = {"start", "intermediate", "end"}
 STRETCH_LIMIT = re.compile(r"\b(?:start|end)\s+(?:point\s+)?of\s+stretch\b")
+REGISTER_TOTAL = re.compile(
+    r"(?:(?:(?:grand|sub|updated|section) )?total|subtotal|"
+    r"roads? section\b.+\btotal)(?:\s*\([^)]*\))?"
+)
 RMMS_COLLECTORS = {"rmmscell", "rmmscell2", "rmmscell3"}
 # Varkala trial point identified by the report owner on 9 November 2026.
 TRIAL_POINTS = {"b7761e13f1eb27a85d1526f2bb885a080ff747530e7e51de22c9d441bb456e75"}
@@ -74,6 +78,8 @@ def division(manifest_path, name):
         for fid, section, road, road_class, number in db.execute(
             "SELECT fid,PWD_Section,Road_Name,Road_Class,Road_NUMBER FROM Road_Register"
         ):
+            if REGISTER_TOTAL.fullmatch(normalized(road)):
+                continue
             key = section_key(section)
             sections.setdefault(key, row(label(section)))["listed"] += 1
             roads[key][fid] = {"name": str(road or "").strip()}
@@ -98,7 +104,8 @@ def division(manifest_path, name):
             selected = normalized(selection)
             display_name = str(road or "").strip() or str(selection or "").strip()
             road, road_class, number = normalized(road) or selected, normalized(road_class), normalized(number)
-            if not (key and road and road_class) or (road_class == "sh" and not number):
+            if (not (key and road and road_class) or (road_class == "sh" and not number)
+                    or REGISTER_TOTAL.fullmatch(road) or REGISTER_TOTAL.fullmatch(selected)):
                 invalid[key] += 1
                 continue
             identity = (road, road_class, number if road_class == "sh" else "")
