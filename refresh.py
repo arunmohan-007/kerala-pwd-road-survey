@@ -119,7 +119,7 @@ def division(manifest_path, name):
                        if (not cls or cls == road_class)
                        and (road_class != "sh" or not num or num == number)]
             if len(matches) == 1 and (not selected or selected == road):
-                endpoints[key][matches[0], identity].add(point_type)
+                endpoints[key][matches[0]].add(point_type)
                 road_row = roads[key][matches[0]]
             elif not candidates and not selected:
                 added[key].add(identity)
@@ -139,8 +139,7 @@ def division(manifest_path, name):
                 road_row.setdefault(column, []).append(point_label)
 
     for key, section in sections.items():
-        section["covered"] = len({fid for (fid, _), types in endpoints[key].items()
-                                  if {"start", "end"} <= types})
+        section["covered"] = sum({"start", "end"} <= types for types in endpoints[key].values())
         section["new"] = len(added[key] - review[key])
         section["newRoadList"] = sorted(
             ({**entry, "remarks": "Same road name in this section's register" if register[key, identity[0]] else ""}
