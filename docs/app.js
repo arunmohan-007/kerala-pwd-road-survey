@@ -458,7 +458,14 @@ function initialize(report) {
       meter.setAttribute("aria-label", "Listed roads with both endpoints");
       progress.append(meter);
     }
-    progress.append(node("p", `${format.format(total.covered)} of ${format.format(total.listed)} listed roads have both endpoints`));
+    const caption = node("p");
+    caption.append(
+      node("strong", format.format(total.covered), "completion-count-covered"),
+      " of ",
+      node("strong", format.format(total.listed), "completion-count-listed"),
+      " listed roads have both endpoints"
+    );
+    progress.append(caption);
     completion.append(headline, progress);
 
     const supporting = node("div", undefined, "summary-metrics");

@@ -295,6 +295,19 @@ th[aria-sort] .sort-marker { opacity: 1; }
   color: var(--muted);
   font-size: 13px;
 }
+.completion-count-covered, .completion-count-listed {
+  font-weight: 800;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.completion-count-covered {
+  color: var(--ink);
+  font-size: clamp(19px, 2.6vw, 27px);
+}
+.completion-count-listed {
+  color: var(--overview-blue);
+  font-size: clamp(32px, 4vw, 46px);
+}
 .summary-metrics, .summary-status {
   display: grid;
   gap: inherit;
