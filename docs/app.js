@@ -31,9 +31,10 @@ function compareProgress(a, b, key, direction) {
   return direction * (value(a) - value(b)) || byName;
 }
 const hasNotStarted = row => row.start + row.intermediate + row.end + row.unknown === 0;
+const isAssigned = section => !/^unassigned (?:pwd )?section$/i.test(section.name);
 const hasCompleted = section => section.listed > 0 && section.covered === section.listed;
 function sectionCounts(sections) {
-  const assigned = sections.filter(section => !/^unassigned (?:pwd )?section$/i.test(section.name));
+  const assigned = sections.filter(isAssigned);
   return {
     total: assigned.length,
     notStarted: assigned.filter(hasNotStarted).length,
@@ -135,23 +136,31 @@ function initialize(report) {
     });
   }
   window.addEventListener("hashchange", () => showView(location.hash.slice(1)));
-  const notStartedByProject = report.divisions
-    .map(project => ({name: project.name, ...sectionCounts(project.sections)}))
-    .sort((a, b) => b.notStarted - a.notStarted || a.name.localeCompare(b.name));
-  $("not-started-list").append(...notStartedByProject.map(project => {
-    const item = node("li");
-    const button = node("button", undefined, "status-link");
-    button.type = "button";
-    const count = `${format.format(project.notStarted)} out of ${format.format(project.total)}`;
-    button.append(node("strong", project.name),
-      node("span", count, "below-average-percent"));
-    button.addEventListener("click", () => {
-      select(project.name);
-      showView("road-details", division);
-    });
-    item.append(button);
-    return item;
-  }));
+  function renderNotStarted(selected) {
+    const projectsInScope = selected ? [selected] : report.divisions;
+    const items = projectsInScope.flatMap(project => project.sections
+      .filter(section => isAssigned(section) && hasNotStarted(section))
+      .map(section => {
+        const item = node("li");
+        const button = node("button", undefined, "status-link");
+        button.type = "button";
+        button.append(node("strong", section.name), node("span", project.name));
+        button.addEventListener("click", () => {
+          select(project.name);
+          showView("road-details");
+          showRoads(section);
+        });
+        item.append(button);
+        return item;
+      }));
+    $("not-started-title").textContent = selected
+      ? `PWD sections yet to start · ${selected.name}` : "PWD sections yet to start";
+    $("not-started-count").textContent = format.format(items.length);
+    $("not-started-empty").hidden = items.length > 0;
+    const list = $("not-started-list");
+    list.hidden = items.length === 0;
+    list.replaceChildren(...items);
+  }
   function select(name) {
     $("road-panel").hidden = true;
     $("new-road-panel").hidden = true;
@@ -277,6 +286,7 @@ function initialize(report) {
   }
   function render() {
     const selected = projects.get(division.value);
+    renderNotStarted(selected);
     setNewRoadDownload($("progress-new-road-download"), newRoadValues(selected?.name), selected?.name);
     $("overview-title").textContent = selected ? selected.name + " overview" : "Statewide overview";
     const rows = selected ? selected.sections : report.divisions;
