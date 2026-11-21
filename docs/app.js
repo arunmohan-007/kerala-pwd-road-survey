@@ -137,10 +137,13 @@ function renderSectionRankings(divisions) {
   const list = $("section-ranking-list");
   const lowest = ranked.slice(0, 10);
   list.closest(".ranking").hidden = lowest.length === 0;
-  lowest.forEach(section => {
+  lowest.forEach((section, index) => {
     const item = node("li");
-    item.append(node("span", section.name + " (" + section.division + ")"),
-      node("strong", percent.format(section.covered / section.listed)));
+    const count = format.format(section.covered) + "/" + format.format(section.listed);
+    const rate = percent.format(section.covered / section.listed);
+    item.append(node("span", String(index + 1), "rank"),
+      node("span", section.name + " (" + section.division + ")"),
+      node("strong", count + " roads · " + rate));
     list.append(item);
   });
   prepareRankingStrip(list);
