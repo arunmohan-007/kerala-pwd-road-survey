@@ -6,8 +6,8 @@
 <meta name="description" content="Kerala PWD and KHRI road network survey reporting by division and PWD section.">
 <meta name="theme-color" content="#101916">
 <title>Road Network Survey Using QField | Kerala PWD | KHRI</title>
-<link rel="stylesheet" href="styles.css?v=overview-card-colors">
-<script src="app.js?v=ranking-colors" defer></script>
+<link rel="stylesheet" href="styles.css?v=overview-layout">
+<script src="app.js?v=overview-layout" defer></script>
 </head>
 <body>
 <aside class="sidebar">
@@ -31,11 +31,11 @@
   <div id="report" hidden>
     <section data-view="overview">
       <h2 class="view-title" id="overview-title" tabindex="-1">Statewide overview</h2>
+    <section class="summary" aria-label="Survey totals" id="summary"></section>
     <section class="ranking panel" aria-labelledby="ranking-title">
     <div class="ranking-head"><div><h3 id="ranking-title">Division rankings</h3><p>By percentage of listed roads covered</p></div><button type="button" id="ranking-pause" aria-pressed="false">Pause</button></div>
     <div class="ranking-window" tabindex="0" aria-label="Division rankings"><div class="ranking-track"><ol id="ranking-list"></ol><ol id="ranking-repeat" aria-hidden="true"></ol></div></div>
     </section>
-    <section class="summary" aria-label="Survey totals" id="summary"></section>
     <section class="panel chart-panel" aria-labelledby="chart-title">
       <div class="panel-head"><div><h2 id="chart-title">Road coverage</h2><p id="chart-detail"></p></div><label class="filter">Chart view<select id="chart-mode"><option value="roads">Road coverage</option><option value="points">Points surveyed</option></select></label></div>
       <div class="legend" id="legend"></div><div id="chart" class="chart" role="list"></div>

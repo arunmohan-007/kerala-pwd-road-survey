@@ -378,10 +378,25 @@ function initialize(report) {
     }
     $("table-detail").textContent = selected ? format.format(counts.notStarted) + " PWD sections not started · " + format.format(counts.completed) + " PWD sections completed · Select a PWD section to see its roads · Verified " + when(selected.verifiedAt)
       : report.divisions.length + " divisions · Select a division to see its PWD sections.";
-    const summaryCards = metrics.map(([key, title, detail]) => {
+    const completion = node("article", undefined, "overview-completion");
+    const headline = node("div", undefined, "completion-headline");
+    headline.append(node("h3", "Road completion"), node("b", metricValue(total, "completion")));
+    const progress = node("div", undefined, "completion-progress");
+    if (total.listed > 0) {
+      const meter = node("progress");
+      meter.max = total.listed;
+      meter.value = total.covered;
+      meter.setAttribute("aria-label", "Listed roads with both endpoints");
+      progress.append(meter);
+    }
+    progress.append(node("p", `${format.format(total.covered)} of ${format.format(total.listed)} listed roads have both endpoints`));
+    completion.append(headline, progress);
+
+    const supporting = node("div", undefined, "summary-metrics");
+    const supportingMetrics = metrics.filter(([key]) => key !== "listed" && key !== "covered" && key !== "completion");
+    supporting.append(...supportingMetrics.map(([key, title, detail]) => {
       const isNewRoads = key === "new";
       const card = node(isNewRoads ? "button" : "article", undefined, "stat " + key);
-      if (key === "completion") card.classList.add(completionBand(total));
       if (isNewRoads) {
         card.type = "button";
         card.setAttribute("aria-controls", "new-road-panel");
@@ -391,7 +406,7 @@ function initialize(report) {
         ? `${metricValue(total, "newCompletion")} of new roads added` : detail;
       card.append(node("small", title), node("b", metricValue(total, key)), node("span", caption));
       return card;
-    });
+    }));
     const statusCards = node("div", undefined, "summary-status");
     for (const [title, count, id, style, denominator] of [
       ["PWD Sections Completed QField Survey", completed.length, "completed", "survey-completed", assignedSectionTotal],
@@ -402,11 +417,11 @@ function initialize(report) {
       card.type = "button";
       card.setAttribute("aria-controls", id + "-panel");
       const value = denominator === undefined ? format.format(count) : `${format.format(count)}/${format.format(denominator)}`;
-      card.append(node("small", title), node("b", value), node("span", "Click to view"));
+      card.append(node("small", title), node("b", value), node("span", "View details"));
       card.addEventListener("click", () => showView("survey-status", $(id + "-title")));
       statusCards.append(card);
     }
-    $("summary").replaceChildren(...summaryCards, statusCards);
+    $("summary").replaceChildren(completion, supporting, statusCards);
     const sorted = rows.map(row => ({row, counts: selected ? null : sectionCounts(row.sections)}));
     sorted.sort((a, b) => compareProgress(a, b, sortKey, sortDirection));
     $("rows").replaceChildren(...sorted.map(({row, counts: rowCounts}) => tableRow(row, selected
