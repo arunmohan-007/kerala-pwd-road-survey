@@ -31,6 +31,12 @@ def normalized(value):
     return " ".join(str(value or "").casefold().split())
 
 
+def road_key(value):
+    name = re.sub(r"\s*[-–—]\s*", "-", normalized(value))
+    return re.sub(r"\b(\d+)\s*[/+]\s*(\d+)\b",
+                  lambda match: f"{int(match[1])}/{int(match[2])}", name)
+
+
 def section_key(value):
     return re.sub(r"^roads section\s*,?\s*", "", normalized(value))
 
@@ -83,22 +89,36 @@ def division(manifest_path, name):
     review = defaultdict(set)
     invalid = defaultdict(int)
     roads = defaultdict(dict)
+    register_ids = {}
 
     with closing(sqlite3.connect(data.as_uri() + "?mode=ro&immutable=1", uri=True)) as db:
         for (section,) in db.execute("SELECT PWD_Section FROM PWD_Sections"):
             key = section_key(section)
             if key and key != "unassigned pwd section":
                 sections.setdefault(key, row(label(section)))
-        for fid, section, road, road_class, number in db.execute(
-            "SELECT fid,PWD_Section,Road_Name,Road_Class,Road_NUMBER FROM Road_Register"
+        for fid, section, road, road_class, number, road_id in db.execute(
+            "SELECT fid,PWD_Section,Road_Name,Road_Class,Road_NUMBER,Road_ID FROM Road_Register ORDER BY fid"
         ):
             if REGISTER_TOTAL.fullmatch(normalized(road)):
                 continue
             key = section_key(section)
+            road_name = road_key(road)
+            cls, num, rid = map(normalized, (road_class, number, road_id))
+            if key and road_name:
+                candidates = register[key, road_name]
+                compatible = [(other, other_cls, other_num) for other, other_cls, other_num in candidates
+                              if (not cls or not other_cls or cls == other_cls)
+                              and (not num or not other_num or num == other_num)
+                              and (not rid or not register_ids[key, other] or rid == register_ids[key, other])]
+                if len(compatible) == 1:
+                    other, other_cls, other_num = compatible[0]
+                    candidates[candidates.index(compatible[0])] = (other, other_cls or cls, other_num or num)
+                    register_ids[key, other] = register_ids[key, other] or rid
+                    continue
+                candidates.append((fid, cls, num))
+                register_ids[key, fid] = rid
             sections.setdefault(key, row(label(section)))["listed"] += 1
             roads[key][fid] = {"name": str(road or "").strip()}
-            if key and normalized(road):
-                register[key, normalized(road)].append((fid, normalized(road_class), normalized(number)))
 
         for point_id, section, road, selection, road_class, number, point_type, username, location, remarks in db.execute(
             "SELECT Point_ID,PWD_Section,Road_Name,Road_Selection,Road_Class,Road_NUMBER,Point_Type,Username,"
@@ -115,14 +135,19 @@ def division(manifest_path, name):
                 continue
             point_type = normalized(point_type)
             section_row[point_type if point_type in TYPES else "unknown"] += 1
-            selected = normalized(selection)
+            selected = road_key(selection)
             display_name = str(road or "").strip() or str(selection or "").strip()
-            road, road_class, number = normalized(road) or selected, normalized(road_class), normalized(number)
+            road, road_class, number = road_key(road) or selected, normalized(road_class), normalized(number)
             if (not (key and road and road_class) or (road_class == "sh" and not number)
                     or REGISTER_TOTAL.fullmatch(road) or REGISTER_TOTAL.fullmatch(selected)):
                 invalid[key] += 1
                 continue
-            identity = (road, road_class, number if road_class == "sh" else "")
+            # This Pala point is the same endpoint as the MDR start on the reverse survey.
+            identity_class = road_class
+            if (name, key, road, normalized(point_id)) == (
+                    "Kottayam District", "pala", "kunnapallikkulam panthathala road", "a7bb1a84"):
+                identity_class = "mdr"
+            identity = (road, identity_class, number if identity_class == "sh" else "")
             candidates = register[key, road]
             if not selected:
                 entry = manual_names[key].setdefault(identity, {"name": display_name, "pointIds": []})
