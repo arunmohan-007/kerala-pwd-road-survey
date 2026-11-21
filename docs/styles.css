@@ -584,7 +584,7 @@ th[aria-sort] .sort-marker { opacity: 1; }
   --road-surface: #edf4fc;
   --road-hover: #e5effb;
 }
-#road-panel .road-filters, #road-panel .road-result-count, #road-panel .road-list {
+#road-panel .road-filters, .road-list-toolbar, #road-panel .road-list {
   margin-inline: clamp(14px, 2vw, 23px);
 }
 #road-panel .road-list { padding-bottom: 18px; }
@@ -694,3 +694,25 @@ th[aria-sort] .sort-marker { opacity: 1; }
   .road-entry > summary::after { grid-column: 2; }
   .road-endpoint-warning { grid-column: 1; grid-row: auto; justify-self: start; }
 }
+
+.road-list-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  margin-block: 12px 8px;
+}
+.road-list-toolbar .road-result-count { margin: 0; }
+.road-list-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.road-list-actions button {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--road-surface);
+  color: var(--road-accent);
+  padding: 6px 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.road-list-actions button:hover:enabled { background: var(--road-hover); }
+.road-list-actions button:disabled { opacity: .5; cursor: default; }

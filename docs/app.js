@@ -308,6 +308,7 @@ function initialize(report) {
       return card;
     }));
     if (query && matches.length === 1) $("road-rows").firstElementChild.open = true;
+    for (const id of ["expand-roads", "collapse-roads"]) $(id).disabled = matches.length === 0;
   }
 
   function showRoads(section) {
@@ -334,6 +335,11 @@ function initialize(report) {
   }
   $("road-search").addEventListener("input", renderRoadList);
   $("road-coverage-filter").addEventListener("change", renderRoadList);
+  for (const [id, open] of [["expand-roads", true], ["collapse-roads", false]]) {
+    $(id).addEventListener("click", () => {
+      for (const road of $("road-rows").children) road.open = open;
+    });
+  }
 
   function completionCell(row) {
     const cell = node("td");

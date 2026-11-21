@@ -6,8 +6,8 @@
 <meta name="description" content="Kerala PWD and KHRI road network survey reporting by division and PWD section.">
 <meta name="theme-color" content="#101916">
 <title>Road Network Survey Using QField | Kerala PWD | KHRI</title>
-<link rel="stylesheet" href="styles.css?v=road-endpoints">
-<script src="app.js?v=road-endpoints" defer></script>
+<link rel="stylesheet" href="styles.css?v=road-expand-all">
+<script src="app.js?v=road-expand-all" defer></script>
 </head>
 <body>
 <aside class="sidebar">
@@ -146,7 +146,13 @@
             <option value="one">One endpoint recorded</option><option value="neither">No endpoints recorded</option>
           </select></label>
         </div>
-        <p id="road-results" class="road-result-count" role="status"></p>
+        <div class="road-list-toolbar">
+          <p id="road-results" class="road-result-count" role="status"></p>
+          <div class="road-list-actions" role="group" aria-label="Road details">
+            <button id="expand-roads" type="button" aria-controls="road-rows">Expand all</button>
+            <button id="collapse-roads" type="button" aria-controls="road-rows">Collapse all</button>
+          </div>
+        </div>
         <div id="road-rows" class="road-list"></div>
     </section>
     <section class="panel" id="new-road-panel" aria-labelledby="new-road-title" hidden>
