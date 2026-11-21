@@ -276,6 +276,44 @@ th[aria-sort] .sort-marker { opacity: 1; }
 @media (max-width: 540px) { .summary-status { grid-template-columns: 1fr; } }
 
 
+[data-view="overview"] .summary .stat {
+  --metric: #245aab;
+  --metric-bg: #eaf2ff;
+  border-color: #cbdcf5;
+  border-top-color: var(--metric);
+}
+[data-view="overview"] .summary .stat.completion {
+  --metric: #704500;
+  --metric-bg: #fff1cb;
+  border-color: #dab36b;
+  border-top: 4px solid var(--metric);
+  box-shadow: 0 2px 10px #70450024;
+}
+[data-view="overview"] .summary .stat.completion small {
+  color: var(--metric);
+  font-size: 13px;
+}
+[data-view="overview"] .summary .stat.completion b {
+  font-size: clamp(36px, 4vw, 46px);
+  font-weight: 800;
+  line-height: 1.05;
+}
+@media (prefers-color-scheme: dark) {
+  [data-view="overview"] .summary .stat {
+    --metric: #9cc9ff;
+    --metric-bg: #192c44;
+    border-color: #365376;
+    border-top-color: var(--metric);
+  }
+  [data-view="overview"] .summary .stat.completion {
+    --metric: #ffdc85;
+    --metric-bg: #372c18;
+    border-color: #826a36;
+    border-top-color: var(--metric);
+    box-shadow: 0 2px 12px #ffdc8526;
+  }
+}
+
 .ranking {
   overflow: hidden;
   margin: 14px 0 18px;
