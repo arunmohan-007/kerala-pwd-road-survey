@@ -387,15 +387,16 @@ function initialize(report) {
       return card;
     });
     const statusCards = node("div", undefined, "summary-status");
-    for (const [title, count, id, style] of [
-      ["PWD Sections Completed QField Survey", completed.length, "completed", "survey-completed"],
+    for (const [title, count, id, style, denominator] of [
+      ["PWD Sections Completed QField Survey", completed.length, "completed", "survey-completed", assignedSectionTotal],
       ["PWD sections yet to start", counts.notStarted, "not-started", "notStarted"],
-      ["Divisions / Districts Completed QField Survey", completedProjects.length, "completed-projects", "survey-completed"]
+      ["Divisions / Districts Completed QField Survey", completedProjects.length, "completed-projects", "survey-completed", report.divisions.length]
     ]) {
       const card = node("button", undefined, "stat " + style);
       card.type = "button";
       card.setAttribute("aria-controls", id + "-panel");
-      card.append(node("small", title), node("b", format.format(count)), node("span", "Click to view"));
+      const value = denominator === undefined ? format.format(count) : `${format.format(count)}/${format.format(denominator)}`;
+      card.append(node("small", title), node("b", value), node("span", "Click to view"));
       card.addEventListener("click", () => showView("survey-status", $(id + "-title")));
       statusCards.append(card);
     }
@@ -427,6 +428,7 @@ function initialize(report) {
       ...entry,
       completion: `${format.format(entry.completed)} out of ${format.format(entry.total)}`
     }));
+  const assignedSectionTotal = completedByDivision.reduce((sum, entry) => sum + entry.total, 0);
   const completedProjects = completedByDivision
     .filter(entry => entry.total > 0 && entry.completed === entry.total)
     .sort((a, b) => a.name.localeCompare(b.name));
