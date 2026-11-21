@@ -47,7 +47,8 @@ const metrics = [
   ["end", "End points", "Surveyed"],
   ["covered", "Listed roads covered", "With both endpoints"],
   ["completion", "Road completion", "Covered share of listed roads"],
-  ["new", "New roads", "Outside the register"]
+  ["new", "New roads added", "Outside the register"],
+  ["newCompleted", "New roads completed", "With both endpoints"]
 ];
 const chartSeries = {
   roads: [["covered", "Covered", "#087763"], ["remaining", "Without both matched endpoints", "#c6dfd2"]],
@@ -202,7 +203,8 @@ function initialize(report) {
     const divisions = divisionName ? [projects.get(divisionName)] : report.divisions;
     return divisions.flatMap(project => (section ? [section] : project.sections)
       .flatMap(area => (area.newRoadList || []).filter(road => !road.remarks).map(road =>
-        [project.name, area.name, road.name, (road.pointIds || []).join(", "), road.remarks])))
+        [project.name, area.name, road.name, (road.pointIds || []).join(", "),
+          road.completed ? "Completed" : "Incomplete", road.remarks])))
       .map((row, index) => [index + 1, ...row]);
   }
   const newRoadHeaders = Array.from($("new-road-panel").querySelectorAll("thead th"), th => th.textContent);
@@ -226,7 +228,8 @@ function initialize(report) {
   }
   function showNewRoads(divisionName, section) {
     const values = newRoadValues(divisionName, section);
-    $("new-road-breakdown").textContent = `${format.format(values.length)} new roads`;
+    const totals = section || projects.get(divisionName) || report.total;
+    $("new-road-breakdown").textContent = `${format.format(totals.new)} added · ${format.format(totals.newCompleted)} completed`;
     setNewRoadDownload($("new-road-download"), values, divisionName, section);
     const rows = values.map(values => {
       const row = node("tr");

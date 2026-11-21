@@ -14,8 +14,8 @@ INK = colors.HexColor("#103830")
 GREEN = colors.HexColor("#176447")
 LIGHT = colors.HexColor("#EAF5EE")
 HEAD = ("Roads in list", "Start points", "Intermediate points", "End points",
-        "Listed roads covered", "New roads")
-KEYS = ("listed", "start", "intermediate", "end", "covered", "new")
+        "Listed roads covered", "New roads added", "New roads completed")
+KEYS = ("listed", "start", "intermediate", "end", "covered", "new", "newCompleted")
 
 
 def stamp(value):
@@ -25,7 +25,7 @@ def stamp(value):
 def table(first, rows, total):
     values = [[first, *HEAD]]
     values += [[r["name"], *(f"{r[key]:,}" for key in KEYS)] for r in [*rows, total]]
-    result = Table(values, colWidths=[204, 78, 77, 102, 69, 113, 66], repeatRows=1)
+    result = Table(values, colWidths=[156, 66, 66, 100, 65, 109, 94, 108], repeatRows=1)
     result.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), GREEN),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
@@ -46,17 +46,18 @@ def new_road_reports(report, footer, title, body):
     folder.mkdir(exist_ok=True)
     published = set()
     cell = ParagraphStyle("New road cell", parent=body, fontSize=9, leading=12)
-    headings = ["Sl. No.", "Division / district", "Section", "Newly added road", "Point ID", "Remarks"]
+    headings = ["Sl. No.", "Division / district", "Section", "Newly added road", "Point ID", "Status", "Remarks"]
 
     def write(key, area, roads):
         story = [Paragraph("New Roads Report", title), Paragraph(escape(area), body),
-                 Paragraph(f"{len(roads)} new roads | Verified through {stamp(report['sourceThrough'])}", body),
+                 Paragraph(f"{len(roads)} added | {sum(road[4] == 'Completed' for road in roads)} completed"
+                           f" | Verified through {stamp(report['sourceThrough'])}", body),
                  Spacer(1, 11)]
         if roads:
             rows = [headings]
             rows.extend([Paragraph(escape(str(value)), cell) for value in (i, *row)]
                         for i, row in enumerate(roads, 1))
-            grid = Table(rows, colWidths=[42, 122, 105, 220, 155, 120], repeatRows=1, splitInRow=1)
+            grid = Table(rows, colWidths=[46, 116, 102, 213, 145, 66, 76], repeatRows=1, splitInRow=1)
             grid.setStyle(TableStyle([
                 ("BACKGROUND", (0, 0), (-1, 0), GREEN),
                 ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
@@ -79,7 +80,8 @@ def new_road_reports(report, footer, title, body):
         division_roads = []
         for j, section in enumerate(division["sections"], 1):
             roads = [(division["name"], section["name"], road["name"],
-                      ", ".join(road.get("pointIds", [])), road["remarks"])
+                      ", ".join(road.get("pointIds", [])),
+                      "Completed" if road["completed"] else "Incomplete", road["remarks"])
                      for road in section.get("newRoadList", []) if not road["remarks"]]
             if roads:
                 write(f"{i}-{j}", f'{division["name"]} / {section["name"]}', roads)
@@ -104,6 +106,7 @@ def section_reports(report, footer, title, body):
                 Paragraph(escape(division["name"]), body),
                 Paragraph(escape(section["name"]), title),
                 Paragraph("Road-wise report | Cloud verified " + stamp(division["verifiedAt"]), body),
+                Paragraph(f'{section["new"]} new roads added | {section["newCompleted"]} completed', body),
                 Spacer(1, 11),
             ]
             roads = section.get("roads", [])
@@ -162,7 +165,8 @@ def main(source):
     story.append(table("Division", report["divisions"], report["total"]))
     story.extend([Spacer(1, 4), Paragraph(
         "Listed roads covered requires at least one Start and one End point matched to the same listed road. "
-        "New roads counts distinct manually entered road identities absent from the register. "
+        "New roads added counts manually entered roads outside the register. "
+        "A new road is completed once it has a start and an end point. "
         "Cloud snapshots exclude submissions that have yet to sync. "
         "Points recorded by RMMS Cell, RMMS Cell 2, or RMMS Cell 3 are excluded from this and future reports. "
         f'Unclassified points: {report["total"]["unknown"]:,}. '

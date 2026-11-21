@@ -14,7 +14,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 BACKUPS = HERE.parent / "Daily Backups"
 IST = timezone(timedelta(hours=5, minutes=30))
-METRICS = ("listed", "start", "intermediate", "end", "covered", "new", "unknown", "review", "excluded")
+METRICS = ("listed", "start", "intermediate", "end", "covered", "new", "newCompleted",
+           "unknown", "review", "excluded")
 TYPES = {"start", "intermediate", "end"}
 STRETCH_LIMIT = re.compile(r"\b(?:start|end)\s+(?:point\s+)?of\s+stretch\b")
 REGISTER_TOTAL = re.compile(
@@ -140,15 +141,20 @@ def division(manifest_path, name):
 
     for key, section in sections.items():
         section["covered"] = sum({"start", "end"} <= types for types in endpoints[key].values())
-        section["new"] = len(added[key] - review[key])
+        new_roads = added[key] - review[key]
+        completed_new_roads = {identity for identity in new_roads
+                               if roads[key][identity].get("start") and roads[key][identity].get("end")}
+        section["new"] = len(new_roads)
+        section["newCompleted"] = len(completed_new_roads)
         section["newRoadList"] = sorted(
-            ({**entry, "remarks": "Same road name in this section's register" if register[key, identity[0]] else ""}
+            ({**entry, "completed": identity in completed_new_roads,
+              "remarks": "Same road name in this section's register" if register[key, identity[0]] else ""}
              for identity, entry in manual_names[key].items()
-             if identity in added[key] - review[key] or register[key, identity[0]]),
+             if identity in new_roads or register[key, identity[0]]),
             key=lambda entry: entry["name"].casefold(),
         )
         section["review"] = len(review[key]) + invalid[key]
-        for identity in added[key] - review[key]:
+        for identity in new_roads:
             roads[key][identity]["name"] += " (New)"
         section["roads"] = sorted(roads[key].values(), key=lambda road: road["name"].casefold())
     rows = sorted(sections.values(), key=lambda item: item["name"].casefold())
