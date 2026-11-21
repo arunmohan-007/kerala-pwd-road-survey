@@ -142,12 +142,7 @@ def division(manifest_path, name):
                     or REGISTER_TOTAL.fullmatch(road) or REGISTER_TOTAL.fullmatch(selected)):
                 invalid[key] += 1
                 continue
-            # This Pala point is the same endpoint as the MDR start on the reverse survey.
-            identity_class = road_class
-            if (name, key, road, normalized(point_id)) == (
-                    "Kottayam District", "pala", "kunnapallikkulam panthathala road", "a7bb1a84"):
-                identity_class = "mdr"
-            identity = (road, identity_class, number if identity_class == "sh" else "")
+            identity = (road, road_class, number if road_class == "sh" else "")
             candidates = register[key, road]
             if not selected:
                 entry = manual_names[key].setdefault(identity, {"name": display_name, "pointIds": []})
