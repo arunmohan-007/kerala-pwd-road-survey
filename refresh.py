@@ -48,6 +48,19 @@ def total(name, rows):
     return {"name": name, **{key: sum(r[key] for r in rows) for key in METRICS}}
 
 
+def new_road_remarks(road):
+    missing = [label for label, present in (
+        ("start", road.get("start")),
+        ("intermediate", road.get("intermediate") or road.get("stretch")),
+        ("end", road.get("end")),
+    ) if not present]
+    if not missing:
+        return ""
+    if len(missing) == 1 and missing[0] != "intermediate":
+        return f"{missing[0].capitalize()} point missing"
+    return f"{', '.join(missing).capitalize()} points missing"
+
+
 def division(manifest_path, name):
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     layers = manifest["survey_point_counts"]
@@ -148,7 +161,9 @@ def division(manifest_path, name):
         section["newCompleted"] = len(completed_new_roads)
         section["newRoadList"] = sorted(
             ({**entry, "completed": identity in completed_new_roads,
-              "remarks": "Same road name in this section's register" if register[key, identity[0]] else ""}
+              "inRegister": bool(register[key, identity[0]]),
+              "remarks": new_road_remarks(roads[key][identity]) if identity in new_roads
+              else "Same road name in this section's register"}
              for identity, entry in manual_names[key].items()
              if identity in new_roads or register[key, identity[0]]),
             key=lambda entry: entry["name"].casefold(),

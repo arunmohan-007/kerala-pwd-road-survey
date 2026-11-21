@@ -214,7 +214,7 @@ function initialize(report) {
   function newRoadValues(divisionName, section) {
     const divisions = divisionName ? [projects.get(divisionName)] : report.divisions;
     return divisions.flatMap(project => (section ? [section] : project.sections)
-      .flatMap(area => (area.newRoadList || []).filter(road => !road.remarks).map(road =>
+      .flatMap(area => (area.newRoadList || []).filter(road => !road.inRegister).map(road =>
         [project.name, area.name, road.name, (road.pointIds || []).join(", "),
           road.completed ? "Completed" : "Incomplete", road.remarks])))
       .map((row, index) => [index + 1, ...row]);

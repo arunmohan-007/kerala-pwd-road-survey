@@ -82,7 +82,7 @@ def new_road_reports(report, footer, title, body):
             roads = [(division["name"], section["name"], road["name"],
                       ", ".join(road.get("pointIds", [])),
                       "Completed" if road["completed"] else "Incomplete", road["remarks"])
-                     for road in section.get("newRoadList", []) if not road["remarks"]]
+                     for road in section.get("newRoadList", []) if not road["inRegister"]]
             if roads:
                 write(f"{i}-{j}", f'{division["name"]} / {section["name"]}', roads)
             division_roads.extend(roads)
