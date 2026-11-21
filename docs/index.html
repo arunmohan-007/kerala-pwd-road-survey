@@ -6,8 +6,8 @@
 <meta name="description" content="Kerala PWD and KHRI road network survey reporting by division and PWD section.">
 <meta name="theme-color" content="#101916">
 <title>Road Network Survey Using QField | Kerala PWD | KHRI</title>
-<link rel="stylesheet" href="styles.css?v=sections-yet-to-start">
-<script src="app.js?v=road-class-remarks" defer></script>
+<link rel="stylesheet" href="styles.css?v=survey-completion-cards">
+<script src="app.js?v=survey-completion-cards" defer></script>
 </head>
 <body>
 <aside class="sidebar">
@@ -50,10 +50,15 @@
       <ul id="below-average-list" class="status-list" tabindex="0" aria-labelledby="below-average-title"></ul>
     </section>
     <section class="status-grid" aria-label="Statewide survey status">
-      <article class="panel status-panel">
-        <div class="status-head"><h2 id="completed-title">PWD sections that completed the QField survey</h2><span id="completed-count" class="status-count"></span></div>
+      <article class="panel status-panel" id="completed-panel">
+        <div class="status-head"><h2 id="completed-title" tabindex="-1">PWD sections that completed the QField survey</h2><span id="completed-count" class="status-count"></span></div>
         <p>Every listed road has a matched start and end point.</p>
         <ul id="completed-list" class="status-list" tabindex="0" aria-labelledby="completed-title"></ul>
+      </article>
+      <article class="panel status-panel" id="completed-projects-panel">
+        <div class="status-head"><h2 id="completed-projects-title" tabindex="-1">Divisions and districts that completed the QField survey</h2><span id="completed-projects-count" class="status-count"></span></div>
+        <p>Every assigned PWD section has completed the survey.</p>
+        <ul id="completed-projects-list" class="status-list" tabindex="0" aria-labelledby="completed-projects-title"></ul>
       </article>
       <article class="panel status-panel">
         <div class="status-head"><h2 id="completed-by-division-title">Completed PWD sections by division and district</h2></div>

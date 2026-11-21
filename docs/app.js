@@ -307,18 +307,10 @@ function initialize(report) {
     }
     $("table-detail").textContent = selected ? format.format(counts.notStarted) + " PWD sections not started · " + format.format(counts.completed) + " PWD sections completed · Select a PWD section to see its roads · Verified " + when(selected.verifiedAt)
       : report.divisions.length + " divisions · Select a division to see its PWD sections.";
-    const summaryMetrics = [...metrics, ["notStarted", "PWD sections yet to start", "Click to view"]];
-    const summaryTotals = {...total, notStarted: counts.notStarted};
-    $("summary").replaceChildren(...summaryMetrics.map(([key, title, detail]) => {
-      const isNotStarted = key === "notStarted";
+    const summaryCards = metrics.map(([key, title, detail]) => {
       const isNewRoads = key === "new";
-      const card = node(isNotStarted || isNewRoads ? "button" : "article", undefined, "stat " + key);
+      const card = node(isNewRoads ? "button" : "article", undefined, "stat " + key);
       if (key === "completion") card.classList.add(completionBand(total));
-      if (isNotStarted) {
-        card.type = "button";
-        card.setAttribute("aria-controls", "not-started-panel");
-        card.addEventListener("click", () => showView("survey-status", $("not-started-title")));
-      }
       if (isNewRoads) {
         card.type = "button";
         card.setAttribute("aria-controls", "new-road-panel");
@@ -326,9 +318,23 @@ function initialize(report) {
       }
       const caption = key === "newCompleted" && total.new
         ? `${metricValue(total, "newCompletion")} of new roads added` : detail;
-      card.append(node("small", title), node("b", metricValue(summaryTotals, key)), node("span", caption));
+      card.append(node("small", title), node("b", metricValue(total, key)), node("span", caption));
       return card;
-    }));
+    });
+    const statusCards = node("div", undefined, "summary-status");
+    for (const [title, count, id, style] of [
+      ["PWD Sections Completed QField Survey", completed.length, "completed", "survey-completed"],
+      ["PWD sections yet to start", counts.notStarted, "not-started", "notStarted"],
+      ["Divisions / Districts Completed QField Survey", completedProjects.length, "completed-projects", "survey-completed"]
+    ]) {
+      const card = node("button", undefined, "stat " + style);
+      card.type = "button";
+      card.setAttribute("aria-controls", id + "-panel");
+      card.append(node("small", title), node("b", format.format(count)), node("span", "Click to view"));
+      card.addEventListener("click", () => showView("survey-status", $(id + "-title")));
+      statusCards.append(card);
+    }
+    $("summary").replaceChildren(...summaryCards, statusCards);
     const sorted = rows.map(row => ({row, counts: selected ? null : sectionCounts(row.sections)}));
     sorted.sort((a, b) => compareProgress(a, b, sortKey, sortDirection));
     $("rows").replaceChildren(...sorted.map(({row, counts: rowCounts}) => tableRow(row, selected
@@ -346,7 +352,7 @@ function initialize(report) {
     paintChart(rows, Boolean(selected));
   }
   const completed = report.divisions.flatMap(project => project.sections
-    .filter(hasCompleted)
+    .filter(section => isAssigned(section) && hasCompleted(section))
     .map(section => ({name: section.name, project: project.name, section})))
     .sort((a, b) => a.name.localeCompare(b.name));
   const completedByDivision = report.divisions
@@ -356,6 +362,9 @@ function initialize(report) {
       ...entry,
       completion: `${format.format(entry.completed)} out of ${format.format(entry.total)}`
     }));
+  const completedProjects = completedByDivision
+    .filter(entry => entry.total > 0 && entry.completed === entry.total)
+    .sort((a, b) => a.name.localeCompare(b.name));
   const statewide = report.total;
   $("state-average").textContent = "State average " + metricValue(statewide, "completion");
   const belowAverage = report.divisions
@@ -364,6 +373,7 @@ function initialize(report) {
     .map(row => ({name: row.name, project: row.name, completion: metricValue(row, "completion")}));
   for (const [id, entries, empty] of [
     ["completed", completed, "No PWD sections have completed the survey."],
+    ["completed-projects", completedProjects, "No divisions or districts have completed the survey."],
     ["completed-by-division", completedByDivision, "No divisions or districts available."],
     ["below-average", belowAverage, "No divisions or districts are below the state average."]
   ]) {
