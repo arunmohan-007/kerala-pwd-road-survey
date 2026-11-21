@@ -10,14 +10,6 @@ function metricValue(row, key) {
   if (key === "newCompletion") return row.new > 0 ? percent.format(row.newCompleted / row.new) : "—";
   return format.format(row[key]);
 }
-function completionBand(row) {
-  if (!row.listed) return "none";
-  const rate = Math.round(1000 * row.covered / row.listed) / 10;
-  if (rate < 25) return "low";
-  if (rate < 50) return "fair";
-  if (rate < 75) return "good";
-  return "high";
-}
 function compareProgress(a, b, key, direction) {
   const byName = a.row.name.localeCompare(b.row.name, "en-IN");
   if (key === "name") return direction * byName;
@@ -343,7 +335,14 @@ function initialize(report) {
 
   function completionCell(row) {
     const cell = node("td");
-    cell.append(node("span", metricValue(row, "completion"), "completion-badge " + completionBand(row)));
+    const badge = node("span", metricValue(row, "completion"), "completion-badge");
+    if (row.listed > 0) {
+      const rate = row.covered / row.listed * 100;
+      const position = Math.max(0, Math.min(1, (rate - 75) / 20));
+      const hue = position <= 0.5 ? 4 + position * 92 : 50 + (position - 0.5) * 192;
+      badge.style.setProperty("--completion-hue", hue);
+    }
+    cell.append(badge);
     return cell;
   }
   function newRoadValues(divisionName, section) {

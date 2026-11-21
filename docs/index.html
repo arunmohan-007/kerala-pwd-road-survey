@@ -6,8 +6,8 @@
 <meta name="description" content="Kerala PWD and KHRI road network survey reporting by division and PWD section.">
 <meta name="theme-color" content="#101916">
 <title>Road Network Survey Using QField | Kerala PWD | KHRI</title>
-<link rel="stylesheet" href="styles.css?v=overview-count-emphasis">
-<script src="app.js?v=overview-count-emphasis" defer></script>
+<link rel="stylesheet" href="styles.css?v=completion-scale">
+<script src="app.js?v=completion-scale" defer></script>
 </head>
 <body>
 <aside class="sidebar">
@@ -92,12 +92,11 @@
     </section>
     <section data-view="road-details" hidden>
       <h2 class="view-title" tabindex="-1">Road details</h2>
-    <div class="completion-legend" aria-label="Road completion color ranges">
+    <div class="completion-legend">
       <strong>Road completion</strong>
-      <span class="completion-badge low">0–24.9%</span>
-      <span class="completion-badge fair">25–49.9%</span>
-      <span class="completion-badge good">50–74.9%</span>
-      <span class="completion-badge high">75–100%</span>
+      <span>75% or less</span>
+      <span class="completion-scale" aria-hidden="true"></span>
+      <span>95% and above</span>
     </div>
     <section class="panel" aria-labelledby="table-title">
       <div class="panel-head">

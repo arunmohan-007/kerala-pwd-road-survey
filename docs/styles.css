@@ -71,12 +71,21 @@ tfoot{background:#deebfc;color:#153764}
 
 
 .completion-legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 9px;margin:-5px 0 18px;font-size:12px}
-.completion-badge{display:inline-block;white-space:nowrap;border-radius:6px;padding:3px 7px;font-weight:700;color:var(--metric);background:var(--metric-bg)}
-.completion-badge.low,.stat.completion.low{--metric:#98252b;--metric-bg:#fce8e9}
-.completion-badge.fair,.stat.completion.fair{--metric:#884008;--metric-bg:#fff0df}
-.completion-badge.good,.stat.completion.good{--metric:#66500a;--metric-bg:#fff4cb}
-.completion-badge.high,.stat.completion.high{--metric:#176345;--metric-bg:#e0f3e8}
-.completion-badge.none,.stat.completion.none{--metric:#475569;--metric-bg:#eef2f6}
+.completion-scale {
+  width: clamp(70px, 14vw, 140px);
+  height: 7px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ca5550, #ceab40, #39a260);
+}
+.completion-badge {
+  display: inline-block;
+  white-space: nowrap;
+  border-radius: 6px;
+  padding: 3px 7px;
+  font-weight: 700;
+  color: hsl(var(--completion-hue, 215) 65% 28%);
+  background: hsl(var(--completion-hue, 215) 62% 92%);
+}
 .below-average{margin-bottom:18px;border-top-color:#98252b}
 .below-average .status-head h2,.below-average-percent{color:#98252b}
 .below-average .status-count{color:#98252b;background:#fce8e9}
@@ -205,11 +214,11 @@ tfoot{background:#e3f1e7;color:#214b3e}
   .stat.intermediate { --metric: #cbb8f8; --metric-bg: #2b2539; }
   .stat.end, .stat.new { --metric: #f5c28c; --metric-bg: #342a20; }
   .stat.covered { --metric: #95e5b2; --metric-bg: #1b3429; border-color: var(--line); border-top-color: var(--metric); }
-  .completion-badge.low, .stat.completion.low, .stat.notStarted { --metric: #ffaab0; --metric-bg: #3a2429; }
-  .completion-badge.fair, .stat.completion.fair { --metric: #ffc18a; --metric-bg: #392a21; }
-  .completion-badge.good, .stat.completion.good { --metric: #f3d689; --metric-bg: #343020; }
-  .completion-badge.high, .stat.completion.high { --metric: #95e5b2; --metric-bg: #1b3429; }
-  .completion-badge.none, .stat.completion.none { --metric: #c0cddd; --metric-bg: #29323e; }
+  .stat.notStarted { --metric: #ffaab0; --metric-bg: #3a2429; }
+  .completion-badge {
+    color: hsl(var(--completion-hue, 215) 78% 80%);
+    background: hsl(var(--completion-hue, 215) 37% 21%);
+  }
 
   .status-head h2 { color: #95e5b2; }
   .status-count { background: #1b3429; color: #95e5b2; }
