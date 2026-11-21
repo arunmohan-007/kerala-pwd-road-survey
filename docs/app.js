@@ -201,6 +201,7 @@ function initialize(report) {
         }
         tr.append(cell);
       }
+      tr.append(node("td", road.remarks || "—"));
       return tr;
     }));
     $("road-panel").hidden = false;

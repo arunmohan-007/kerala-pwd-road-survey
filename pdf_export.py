@@ -111,7 +111,7 @@ def section_reports(report, footer, title, body):
             ]
             roads = section.get("roads", [])
             if roads:
-                rows = [["Road name", "Start points", "End points", "Intermediate points", "Stretch limits"]]
+                rows = [["Road name", "Start points", "End points", "Intermediate points", "Stretch limits", "Remarks"]]
                 for road in roads:
                     row = [Paragraph(escape(road.get("name") or "Unnamed road"), cell)]
                     for key in ("start", "end", "intermediate", "stretch"):
@@ -119,8 +119,9 @@ def section_reports(report, footer, title, body):
                         lines = [str(len(points)) if points else "-"]
                         lines.extend(escape(location) for location in points if location)
                         row.append(Paragraph("<br/>".join(lines), cell))
+                    row.append(Paragraph(escape(road.get("remarks", "")), cell))
                     rows.append(row)
-                details = Table(rows, colWidths=[184, 136, 136, 154, 154],
+                details = Table(rows, colWidths=[150, 113, 113, 133, 133, 122],
                                 repeatRows=1, splitInRow=1)
                 details.setStyle(TableStyle([
                     ("BACKGROUND", (0, 0), (-1, 0), GREEN),

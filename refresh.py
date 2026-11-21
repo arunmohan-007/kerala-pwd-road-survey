@@ -89,6 +89,7 @@ def division(manifest_path, name):
     review = defaultdict(set)
     invalid = defaultdict(int)
     roads = defaultdict(dict)
+    survey_classes = defaultdict(set)
     register_ids = {}
 
     with closing(sqlite3.connect(data.as_uri() + "?mode=ro&immutable=1", uri=True)) as db:
@@ -143,6 +144,7 @@ def division(manifest_path, name):
                 invalid[key] += 1
                 continue
             identity = (road, road_class, number if road_class == "sh" else "")
+            survey_classes[key, road].add(road_class)
             candidates = register[key, road]
             if not selected:
                 entry = manual_names[key].setdefault(identity, {"name": display_name, "pointIds": []})
@@ -179,11 +181,27 @@ def division(manifest_path, name):
                                if roads[key][identity].get("start") and roads[key][identity].get("end")}
         section["new"] = len(new_roads)
         section["newCompleted"] = len(completed_new_roads)
+        class_remarks = {}
+        for road_row in roads[key].values():
+            road = road_key(road_row["name"])
+            classes = survey_classes[key, road]
+            if len(classes) < 2:
+                continue
+            if (name, key, road, classes) == (
+                    "Kottayam District", "pala", "kunnapallikkulam panthathala road", {"odr", "mdr"}):
+                remark = "Road having ODR and MDR stretches"
+            else:
+                remark = "Surveyed road classes: " + ", ".join(sorted(cls.upper() for cls in classes))
+            class_remarks[road] = remark
+            road_row["remarks"] = remark
         section["newRoadList"] = sorted(
             ({**entry, "completed": identity in completed_new_roads,
               "inRegister": bool(register[key, identity[0]]),
-              "remarks": new_road_remarks(roads[key][identity]) if identity in new_roads
-              else "Same road name in this section's register"}
+              "remarks": ". ".join(filter(None, (
+                  class_remarks.get(identity[0]),
+                  (new_road_remarks(roads[key][identity]) if identity in new_roads
+                   else "Same road name in this section's register"),
+              )))}
              for identity, entry in manual_names[key].items()
              if identity in new_roads or register[key, identity[0]]),
             key=lambda entry: entry["name"].casefold(),
