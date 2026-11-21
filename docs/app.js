@@ -450,6 +450,21 @@ function initialize(report) {
       completion: `${format.format(entry.completed)} out of ${format.format(entry.total)}`
     }));
   const assignedSectionTotal = completedByDivision.reduce((sum, entry) => sum + entry.total, 0);
+  const notStartedTotal = completedByDivision.reduce((sum, entry) => sum + entry.notStarted, 0);
+  const sectionStages = [
+    ["Completed", completed.length, "complete"],
+    ["In progress", assignedSectionTotal - completed.length - notStartedTotal, "active"],
+    ["Yet to start", notStartedTotal, "pending"]
+  ];
+  $("section-progress-total").textContent = format.format(assignedSectionTotal) + " assigned sections";
+  for (const [label, count, stage] of sectionStages) {
+    const segment = node("span", undefined, stage);
+    segment.style.flexGrow = count;
+    $("section-progress-track").append(segment);
+    const group = node("div", undefined, stage);
+    group.append(node("dt", label), node("dd", format.format(count)));
+    $("section-progress-breakdown").append(group);
+  }
   const completedProjects = completedByDivision
     .filter(entry => entry.total > 0 && entry.completed === entry.total)
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -458,7 +473,12 @@ function initialize(report) {
   const belowAverage = report.divisions
     .filter(row => row.listed > 0 && row.covered * statewide.listed < statewide.covered * row.listed)
     .sort((a, b) => a.covered / a.listed - b.covered / b.listed || a.name.localeCompare(b.name))
-    .map(row => ({name: row.name, project: row.name, completion: metricValue(row, "completion")}));
+    .map(row => ({
+      name: row.name,
+      project: row.name,
+      completion: metricValue(row, "completion"),
+      gap: ((statewide.covered / statewide.listed - row.covered / row.listed) * 100).toFixed(1)
+    }));
   for (const [id, entries, empty] of [
     ["completed", completed, "No PWD sections have completed the survey."],
     ["completed-projects", completedProjects, "No divisions or districts have completed the survey."],
@@ -471,9 +491,18 @@ function initialize(report) {
       const item = node("li");
       const button = node("button", undefined, "status-link");
       const title = node("strong", entry.name);
+      button.type = "button";
       button.append(title);
       if (entry.section) button.append(node("small", entry.project));
-      if (entry.completion) button.append(node("span", entry.completion, "below-average-percent"));
+      if (entry.completion) button.append(node("span", entry.completion, "status-value"));
+      if (entry.gap) button.append(node("small", entry.gap + " percentage points below statewide", "status-gap"));
+      if (id === "completed-by-division" && entry.total > 0) {
+        const progress = node("progress", undefined, "status-division-meter");
+        progress.max = entry.total;
+        progress.value = entry.completed;
+        progress.setAttribute("aria-label", "Completed PWD sections");
+        button.append(progress);
+      }
       button.addEventListener("click", () => {
         select(entry.project);
         showView("road-details", division);
