@@ -135,7 +135,7 @@ function renderSectionRankings(divisions) {
     .sort((a, b) => a.covered * b.listed - b.covered * a.listed
       || a.name.localeCompare(b.name) || a.division.localeCompare(b.division));
   const list = $("section-ranking-list");
-  const lowest = ranked.slice(0, Math.ceil(ranked.length / 10));
+  const lowest = ranked.slice(0, 10);
   list.closest(".ranking").hidden = lowest.length === 0;
   lowest.forEach(section => {
     const item = node("li");
