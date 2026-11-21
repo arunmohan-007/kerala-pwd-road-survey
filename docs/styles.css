@@ -576,3 +576,178 @@ th[aria-sort] .sort-marker { opacity: 1; }
   .status-dashboard .status-division-progress .status-list,
   .status-dashboard #below-average-list { max-height: none; }
 }
+
+[data-view="road-details"] {
+  --road-accent: #255a9d;
+  --road-surface: #edf4fc;
+  --road-hover: #e5effb;
+}
+[data-view="road-details"]:has(#road-panel:not([hidden])) .road-directory,
+[data-view="road-details"]:has(#road-panel:not([hidden])) .road-summary-table {
+  display: none;
+}
+.road-directory, .road-explorer { padding: clamp(14px, 3vw, 24px); }
+.road-directory-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 18px;
+}
+.road-directory-head h3 {
+  margin: 0;
+  font-size: clamp(20px, 3vw, 29px);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.road-directory-head p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.road-directory-head .road-context {
+  color: var(--road-accent);
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+.road-downloads { display: flex; flex-wrap: wrap; gap: 7px; }
+.road-download, .road-back {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--road-surface);
+  color: var(--road-accent);
+  padding: 8px 10px;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+}
+.road-download:hover, .road-back:hover { background: var(--road-hover); }
+.road-back { margin-bottom: 16px; }
+.road-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+.road-filters label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 700;
+}
+.road-filters input, .road-filters select {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: var(--road-surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+}
+.road-filters input::placeholder { color: var(--muted); }
+.road-result-count { margin: 14px 0 8px; color: var(--muted); font-size: 12px; }
+.section-directory-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  max-height: min(62vh, 570px);
+  overflow: auto;
+  scrollbar-width: thin;
+  padding: 2px 4px 2px 2px;
+  margin: 0;
+  list-style: none;
+}
+.section-directory-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  text-align: left;
+  gap: 10px;
+  width: 100%;
+  min-height: 68px;
+  height: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--road-surface);
+  color: var(--ink);
+}
+.section-directory-link:hover, .section-directory-link:focus-visible {
+  background: var(--road-hover);
+  border-color: var(--road-accent);
+}
+.section-directory-name, .section-directory-coverage { display: grid; gap: 3px; }
+.section-directory-name { overflow-wrap: anywhere; }
+.section-directory-coverage { justify-items: end; white-space: nowrap; }
+.section-directory-link small { color: var(--muted); font-size: 11px; font-weight: 500; }
+.section-arrow { color: var(--road-accent); font-size: 20px; }
+.road-summary-table > summary {
+  padding: 14px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.road-list { display: grid; gap: 7px; }
+.road-entry {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  overflow: hidden;
+}
+.road-entry > summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 12px;
+  align-items: center;
+  padding: 11px 13px;
+  cursor: pointer;
+  background: var(--road-surface);
+}
+.road-entry > summary:hover { background: var(--road-hover); }
+.road-entry > summary:focus-visible { outline-offset: -3px; }
+.road-entry > summary strong { overflow-wrap: anywhere; }
+.road-entry > summary::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--road-accent);
+  border-bottom: 2px solid var(--road-accent);
+  transform: rotate(45deg);
+  grid-column: 2;
+  grid-row: 1;
+}
+.road-entry[open] > summary::after { transform: rotate(225deg); }
+.road-point-counts {
+  grid-column: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 13px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.road-entry-body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 11px 13px;
+}
+.road-point-group { padding: 9px 11px; border-inline-start: 2px solid var(--line); }
+.road-entry-body h4 { margin: 0 0 5px; color: var(--road-accent); font-size: 13px; }
+.road-entry-body ul { margin: 0; padding-inline-start: 17px; }
+.road-entry-body li, .road-entry-body p { font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.road-entry-body p { margin: 0; color: var(--muted); }
+.road-remarks { grid-column: 1 / -1; padding: 9px 11px; }
+@media screen {
+  [data-view="road-details"] {
+    --road-accent: #a9ccff;
+    --road-surface: #182938;
+    --road-hover: #23394d;
+  }
+}
+@media (max-width: 650px) {
+  .road-filters, .section-directory-list, .road-entry-body { grid-template-columns: minmax(0, 1fr); }
+  .section-directory-list { max-height: 58vh; }
+}

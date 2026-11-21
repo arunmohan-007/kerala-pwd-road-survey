@@ -147,6 +147,52 @@ def section_reports(report, footer, title, body):
         stale.unlink()
 
 
+def area_reports(report, footer, title, body):
+    """Write standalone division and PWD section summaries."""
+    division_folder = HERE / "docs" / "division-pdfs"
+    section_folder = HERE / "docs" / "section-summary-pdfs"
+    for folder in (division_folder, section_folder):
+        folder.mkdir(exist_ok=True)
+    published = set()
+
+    def write(target, name, scope, verified, totals, rows, first_heading):
+        coverage = (f'{totals["covered"] / totals["listed"]:.1%}'
+                    if totals["listed"] else "No listed roads")
+        story = [
+            Paragraph(escape(scope), body),
+            Paragraph(escape(name), title),
+            Paragraph("Cloud verified " + stamp(verified), body),
+            Spacer(1, 10),
+            Paragraph(
+                f'<b>Road completion:</b> {coverage} | {totals["covered"]:,} of '
+                f'{totals["listed"]:,} listed roads have matched start and end points.', body),
+            Spacer(1, 10),
+            table(first_heading, [
+                {**row, "name": Paragraph(escape(row["name"]), body)} for row in rows
+            ], totals),
+        ]
+        temporary = target.with_suffix(".pdf.tmp")
+        SimpleDocTemplate(str(temporary), pagesize=landscape(A4), leftMargin=32,
+                          rightMargin=32, topMargin=32, bottomMargin=37,
+                          title=f"{name} - {scope}").build(
+                              story, onFirstPage=footer, onLaterPages=footer)
+        temporary.replace(target)
+        published.add(target)
+
+    for i, division in enumerate(report["divisions"], 1):
+        write(division_folder / f"{i}.pdf", division["name"], "Division survey summary",
+              division["verifiedAt"], {**division, "name": "Division total"},
+              division["sections"], "PWD section")
+        for j, section in enumerate(division["sections"], 1):
+            write(section_folder / f"{i}-{j}.pdf", section["name"],
+                  "PWD section summary | " + division["name"], division["verifiedAt"],
+                  {**section, "name": "Section total"}, [], "Survey counts")
+
+    for folder in (division_folder, section_folder):
+        for stale in set(folder.glob("*.pdf")) - published:
+            stale.unlink()
+
+
 def main(source):
     report = json.loads(source.read_text(encoding="utf-8"))
     styles = getSampleStyleSheet()
@@ -193,6 +239,7 @@ def main(source):
                       title="Kerala PWD and KHRI - Road Network Survey").build(
                           story, onFirstPage=footer, onLaterPages=footer)
     temporary.replace(target)
+    area_reports(report, footer, title, body)
     section_reports(report, footer, title, body)
     new_road_reports(report, footer, title, body)
 
