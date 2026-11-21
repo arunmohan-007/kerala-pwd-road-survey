@@ -246,131 +246,43 @@ function initialize(report) {
     history.replaceState(null, "", location.pathname + (query.size ? "?" + query : "") + location.hash);
     render();
   }
-  const roadPointGroups = [
-    ["start", "Start points"],
-    ["end", "End points"],
-    ["intermediate", "Intermediate points"],
-    ["stretch", "Stretch start and end points"]
-  ];
-  let currentSection;
-  let sectionTrigger;
-
-  function renderSectionDirectory() {
-    const selected = projects.get(division.value);
-    const query = $("section-search").value.trim().toLocaleLowerCase();
-    const areas = selected ? [selected] : report.divisions;
-    const sections = areas.flatMap(project => project.sections
-      .filter(section => section.name.toLocaleLowerCase().includes(query))
-      .map(section => ({section, project})))
-      .sort((a, b) => a.section.name.localeCompare(b.section.name) || a.project.name.localeCompare(b.project.name));
-
-    const download = $("division-pdf");
-    download.href = selected ? `division-pdfs/${report.divisions.indexOf(selected) + 1}.pdf` : "road-survey.pdf";
-    download.download = selected ? selected.name + " - Survey report.pdf" : "Kerala - Road survey report.pdf";
-    download.textContent = selected ? "Download division PDF" : "Download statewide PDF";
-    $("section-results").textContent = sections.length
-      ? `${format.format(sections.length)} sections` : "No sections match your search.";
-    $("section-directory").replaceChildren(...sections.map(({section, project}) => {
-      const item = node("li");
-      const button = node("button", undefined, "section-directory-link");
-      button.type = "button";
-      const title = node("span", undefined, "section-directory-name");
-      title.append(node("strong", section.name), node("small", project.name));
-      const coverage = node("span", undefined, "section-directory-coverage");
-      coverage.append(
-        node("span", metricValue(section, "completion"), "completion-badge " + completionBand(section)),
-        node("small", `${format.format(section.covered)}/${format.format(section.listed)} roads`)
-      );
-      button.append(title, coverage, node("span", "›", "section-arrow"));
-      button.lastElementChild.setAttribute("aria-hidden", "true");
-      button.addEventListener("click", () => showRoads(section, project, button));
-      item.append(button);
-      return item;
-    }));
-  }
-
-  function renderRoadList() {
-    const query = $("road-search").value.trim().toLocaleLowerCase();
-    const filter = $("road-coverage-filter").value;
-    const roads = currentSection.roads || [];
-    const matches = roads.filter(road => {
-      const endpoints = Number(Boolean(road.start?.length)) + Number(Boolean(road.end?.length));
-      const status = ["neither", "one", "both"][endpoints];
-      return (filter === "all" || filter === status) &&
-        (!query || (road.name || "").toLocaleLowerCase().includes(query) ||
-          roadPointGroups.some(([key]) => (road[key] || []).some(point => point?.toLocaleLowerCase().includes(query))));
-    });
-    $("road-results").textContent = matches.length
-      ? `Showing ${format.format(matches.length)} of ${format.format(roads.length)} roads`
-      : "No roads match the current filters.";
-    $("road-rows").replaceChildren(...matches.map(road => {
-      const card = node("details", undefined, "road-entry");
-      const summary = node("summary");
-      const name = node("strong", road.name || "Unnamed road");
-      const points = node("span", undefined, "road-point-counts");
-      for (const [key, label] of roadPointGroups) {
-        points.append(node("span", label + " " + format.format(road[key]?.length || 0)));
-      }
-      summary.append(name, points);
-      const body = node("div", undefined, "road-entry-body");
-      for (const [key, label] of roadPointGroups) {
-        const group = node("section", undefined, "road-point-group");
-        const locations = road[key] || [];
-        group.append(node("h4", label));
+  function showRoads(section) {
+    $("new-road-panel").hidden = true;
+    const roads = section.roads || [];
+    const project = projects.get(division.value);
+    const sectionId = `${report.divisions.indexOf(project) + 1}-${project.sections.indexOf(section) + 1}`;
+    const prefix = `${project.name} - ${section.name}`;
+    const roadPdf = $("road-pdf");
+    roadPdf.href = `section-pdfs/${sectionId}.pdf`;
+    roadPdf.download = prefix + " - Full road list.pdf";
+    const sectionPdf = $("section-pdf");
+    sectionPdf.href = `section-summary-pdfs/${sectionId}.pdf`;
+    sectionPdf.download = prefix + " - Section summary.pdf";
+    setNewRoadPdf($("section-new-roads-pdf"), newRoadValues(project.name, section), project.name, section);
+    $("road-title").textContent = section.name + " · Road details";
+    $("road-detail").textContent = `${project.name} · ${format.format(roads.length)} roads · ${metricValue(section, "completion")} listed road completion`;
+    $("road-rows").replaceChildren(...roads.map(road => {
+      const tr = node("tr");
+      const name = node("th", road.name || "Unnamed road");
+      name.scope = "row";
+      tr.append(name);
+      for (const key of ["start", "end", "intermediate", "stretch"]) {
+        const points = road[key] || [];
+        const cell = node("td", points.length ? format.format(points.length) : "—");
+        const locations = points.filter(Boolean);
         if (locations.length) {
           const list = node("ul");
-          list.append(...locations.map(location => node("li", location || "Location not recorded")));
-          group.append(list);
-        } else {
-          group.append(node("p", "No points recorded"));
+          list.append(...locations.map(location => node("li", location)));
+          cell.append(list);
         }
-        body.append(group);
+        tr.append(cell);
       }
-      if (road.remarks) {
-        const remarks = node("div", undefined, "road-remarks");
-        remarks.append(node("h4", "Remarks"), node("p", road.remarks));
-        body.append(remarks);
-      }
-      card.append(summary, body);
-      return card;
+      tr.append(node("td", road.remarks || "—"));
+      return tr;
     }));
-    if (query && matches.length === 1) $("road-rows").firstElementChild.open = true;
-  }
-
-  function showRoads(section, project = projects.get(division.value), trigger) {
-    currentSection = section;
-    sectionTrigger = trigger;
-    $("new-road-panel").hidden = true;
-    const divisionIndex = report.divisions.indexOf(project) + 1;
-    const sectionId = `${divisionIndex}-${project.sections.indexOf(section) + 1}`;
-    const name = `${project.name} - ${section.name}`;
-    for (const [id, href, label] of [
-      ["section-division-pdf", `division-pdfs/${divisionIndex}.pdf`, project.name + " - Survey report"],
-      ["section-pdf", `section-summary-pdfs/${sectionId}.pdf`, name + " - Section summary"],
-      ["road-pdf", `section-pdfs/${sectionId}.pdf`, name + " - Road list"]
-    ]) {
-      const link = $(id);
-      link.href = href;
-      link.download = label + ".pdf";
-    }
-    setNewRoadPdf($("section-new-roads-pdf"), newRoadValues(project.name, section), project.name, section);
-    $("road-division").textContent = project.name;
-    $("road-title").textContent = section.name;
-    $("road-detail").textContent = `${format.format(section.covered)} of ${format.format(section.listed)} listed roads covered · ${metricValue(section, "completion")} completion`;
-    $("road-search").value = "";
-    $("road-coverage-filter").value = "all";
-    renderRoadList();
     $("road-panel").hidden = false;
     $("road-title").focus();
   }
-  $("section-search").addEventListener("input", renderSectionDirectory);
-  $("road-search").addEventListener("input", renderRoadList);
-  $("road-coverage-filter").addEventListener("change", renderRoadList);
-  $("back-to-sections").addEventListener("click", () => {
-    $("road-panel").hidden = true;
-    (sectionTrigger?.isConnected ? sectionTrigger : $("section-search")).focus();
-  });
-
   function completionCell(row) {
     const cell = node("td");
     cell.append(node("span", metricValue(row, "completion"), "completion-badge " + completionBand(row)));
@@ -458,7 +370,10 @@ function initialize(report) {
   function render() {
     const selected = projects.get(division.value);
     renderNotStarted(selected);
-    renderSectionDirectory();
+    const surveyPdf = $("division-pdf");
+    surveyPdf.href = selected ? `division-pdfs/${report.divisions.indexOf(selected) + 1}.pdf` : "road-survey.pdf";
+    surveyPdf.textContent = selected ? "Division summary PDF" : "Statewide survey PDF";
+    surveyPdf.download = (selected?.name || "Kerala") + " - Survey summary.pdf";
     setNewRoadDownload($("progress-new-road-download"), newRoadValues(selected?.name), selected?.name);
     $("overview-title").textContent = selected ? selected.name + " overview" : "Statewide overview";
     const rows = selected ? selected.sections : report.divisions;
@@ -612,10 +527,7 @@ function initialize(report) {
   $("updated").textContent = "Last updated " + when(report.updatedAt);
   $("source").textContent = report.mode + " · " + when(report.sourceThrough);
   $("source").title = "Cloud verification began " + when(report.sourceFrom);
-  division.addEventListener("change", () => {
-    $("section-search").value = "";
-    select(division.value);
-  });
+  division.addEventListener("change", () => select(division.value));
   $("chart-mode").addEventListener("change", render);
 
   const initialDivision = new URLSearchParams(location.search).get("division");
