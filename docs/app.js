@@ -7,6 +7,7 @@ const when = value => date.format(new Date(value)) + " IST";
 const percent = new Intl.NumberFormat("en-IN", {style: "percent", maximumFractionDigits: 1});
 function metricValue(row, key) {
   if (key === "completion") return row.listed > 0 ? percent.format(row.covered / row.listed) : "—";
+  if (key === "newCompletion") return row.new > 0 ? percent.format(row.newCompleted / row.new) : "—";
   return format.format(row[key]);
 }
 function completionBand(row) {
@@ -20,12 +21,13 @@ function completionBand(row) {
 function compareProgress(a, b, key, direction) {
   const byName = a.row.name.localeCompare(b.row.name, "en-IN");
   if (key === "name") return direction * byName;
-  if (key === "completion") {
-    const missingA = Number(!a.row.listed);
-    const missingB = Number(!b.row.listed);
+  if (key === "completion" || key === "newCompletion") {
+    const [numerator, denominator] = key === "completion" ? ["covered", "listed"] : ["newCompleted", "new"];
+    const missingA = Number(!a.row[denominator]);
+    const missingB = Number(!b.row[denominator]);
     if (missingA !== missingB) return missingA - missingB;
     if (missingA) return byName;
-    return direction * (a.row.covered * b.row.listed - b.row.covered * a.row.listed) || byName;
+    return direction * (a.row[numerator] * b.row[denominator] - b.row[numerator] * a.row[denominator]) || byName;
   }
   const value = entry => entry.counts?.[key] ?? entry.row[key];
   return direction * (value(a) - value(b)) || byName;
@@ -51,6 +53,7 @@ const metrics = [
   ["new", "New roads added", "Outside the register"],
   ["newCompleted", "New roads completed", "With both endpoints"]
 ];
+const progressMetrics = [...metrics, ["newCompletion", "New road completion"]];
 const chartSeries = {
   roads: [["covered", "Covered", "#087763"], ["remaining", "Without both matched endpoints", "#c6dfd2"]],
   points: [["start", "Start", "#087763"], ["intermediate", "Intermediate", "#408398"], ["end", "End", "#9b5a25"], ["unknown", "Unclassified", "#7a6c85"]]
@@ -238,7 +241,8 @@ function initialize(report) {
   function showNewRoads(divisionName, section) {
     const values = newRoadValues(divisionName, section);
     const totals = section || projects.get(divisionName) || report.total;
-    $("new-road-breakdown").textContent = `${format.format(totals.new)} added · ${format.format(totals.newCompleted)} completed`;
+    const completion = totals.new ? ` (${metricValue(totals, "newCompletion")})` : "";
+    $("new-road-breakdown").textContent = `${format.format(totals.new)} added · ${format.format(totals.newCompleted)} completed${completion}`;
     setNewRoadDownload($("new-road-download"), values, divisionName, section);
     const rows = values.map(values => {
       const row = node("tr");
@@ -270,7 +274,7 @@ function initialize(report) {
       button.addEventListener("click", onClick);
       heading.append(button);
     } else heading.textContent = row.name;
-    tr.append(heading, ...metrics.map(([key]) => {
+    tr.append(heading, ...progressMetrics.map(([key]) => {
       if (key === "completion") return completionCell(row);
       if (key !== "new") return node("td", metricValue(row, key));
       const cell = node("td");
@@ -319,7 +323,9 @@ function initialize(report) {
         card.setAttribute("aria-controls", "new-road-panel");
         card.addEventListener("click", () => showNewRoads(selected?.name));
       }
-      card.append(node("small", title), node("b", metricValue(summaryTotals, key)), node("span", detail));
+      const caption = key === "newCompleted" && total.new
+        ? `${metricValue(total, "newCompletion")} of new roads added` : detail;
+      card.append(node("small", title), node("b", metricValue(summaryTotals, key)), node("span", caption));
       return card;
     }));
     const sorted = rows.map(row => ({row, counts: selected ? null : sectionCounts(row.sections)}));
