@@ -97,7 +97,46 @@ function paintChart(rows, isDivision) {
     return item;
   }));
 }
+function renderDivisionRankings(divisions) {
+  const ranked = divisions
+    .filter(row => row.listed > 0)
+    .sort((a, b) => b.covered * a.listed - a.covered * b.listed || a.name.localeCompare(b.name));
+  const list = $("ranking-list");
+
+  function addGroup(label, style, rows, firstRank) {
+    const heading = document.createElement("li");
+    heading.className = "ranking-label " + style;
+    heading.textContent = label;
+    list.append(heading);
+    rows.forEach((row, index) => {
+      const item = document.createElement("li");
+      const rank = document.createElement("span");
+      rank.className = "rank";
+      rank.textContent = firstRank + index;
+      const name = document.createElement("span");
+      name.textContent = row.name;
+      const rate = document.createElement("strong");
+      rate.textContent = percent.format(row.covered / row.listed);
+      item.append(rank, name, rate);
+      list.append(item);
+    });
+  }
+
+  addGroup("Top 4", "top", ranked.slice(0, 4), 1);
+  const lastStart = Math.max(4, ranked.length - 4);
+  addGroup("Last 4", "last", ranked.slice(lastStart), lastStart + 1);
+  $("ranking-repeat").replaceChildren(...Array.from(list.children, item => item.cloneNode(true)));
+
+  const pause = $("ranking-pause");
+  pause.addEventListener("click", () => {
+    const paused = pause.closest(".ranking").classList.toggle("is-paused");
+    pause.setAttribute("aria-pressed", String(paused));
+    pause.textContent = paused ? "Resume" : "Pause";
+  });
+}
+
 function initialize(report) {
+  renderDivisionRankings(report.divisions);
   const division = $("division");
   const projects = new Map(report.divisions.map(row => [row.name, row]));
   let sortKey = "completion";
