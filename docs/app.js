@@ -108,15 +108,21 @@ function renderDivisionRankings(divisions) {
     heading.className = "ranking-label " + style;
     heading.textContent = label;
     list.append(heading);
+    if (!rows.length) return;
+
+    const highest = rows[0].covered / rows[0].listed;
+    const lowest = rows.at(-1).covered / rows.at(-1).listed;
     rows.forEach((row, index) => {
       const item = document.createElement("li");
       const rank = document.createElement("span");
       rank.className = "rank";
       rank.textContent = firstRank + index;
-      const name = document.createElement("span");
-      name.textContent = row.name;
-      const rate = document.createElement("strong");
-      rate.textContent = percent.format(row.covered / row.listed);
+      const completion = row.covered / row.listed;
+      const distance = style === "top" ? completion - lowest : highest - completion;
+      const strength = highest === lowest ? 0 : 100 * (distance / (highest - lowest));
+      const name = node("span", row.name, "ranking-name ranking-name-" + style);
+      name.style.setProperty("--ranking-strength", strength + "%");
+      const rate = node("strong", percent.format(completion));
       item.append(rank, name, rate);
       list.append(item);
     });
