@@ -246,6 +246,70 @@ function initialize(report) {
     history.replaceState(null, "", location.pathname + (query.size ? "?" + query : "") + location.hash);
     render();
   }
+  const roadPointGroups = [
+    ["start", "Start points"],
+    ["end", "End points"],
+    ["intermediate", "Intermediate points"],
+    ["stretch", "Stretch start and end points"]
+  ];
+  let currentSection;
+
+  function renderRoadList() {
+    const query = $("road-search").value.trim().toLocaleLowerCase();
+    const filter = $("road-coverage-filter").value;
+    const roads = currentSection.roads || [];
+    const matches = roads.filter(road => {
+      const endpoints = Number(Boolean(road.start?.length)) + Number(Boolean(road.end?.length));
+      const status = ["neither", "one", "both"][endpoints];
+      return (filter === "all" || filter === status || (filter === "missing" && endpoints < 2)) &&
+        (!query || (road.name || "").toLocaleLowerCase().includes(query) ||
+          roadPointGroups.some(([key]) => (road[key] || []).some(point => point?.toLocaleLowerCase().includes(query))));
+    });
+    $("road-results").textContent = matches.length
+      ? `Showing ${format.format(matches.length)} of ${format.format(roads.length)} roads`
+      : "No roads match the current filters.";
+    $("road-rows").replaceChildren(...matches.map(road => {
+      const card = node("details", undefined, "road-entry");
+      const summary = node("summary");
+      const name = node("strong", road.name || "Unnamed road");
+      const points = node("span", undefined, "road-point-counts");
+      for (const [key, label] of roadPointGroups) {
+        points.append(node("span", label + " " + format.format(road[key]?.length || 0)));
+      }
+      summary.append(name);
+      const missing = !road.start?.length && !road.end?.length ? "Start and end missing"
+        : !road.start?.length ? "Start missing" : !road.end?.length ? "End missing" : "";
+      if (missing) {
+        const warning = node("span", undefined, "road-endpoint-warning");
+        warning.append(node("strong", "Survey not completed"), node("span", missing));
+        summary.append(warning);
+      }
+      summary.append(points);
+      const body = node("div", undefined, "road-entry-body");
+      for (const [key, label] of roadPointGroups) {
+        const group = node("section", undefined, "road-point-group");
+        const locations = road[key] || [];
+        group.append(node("h4", label));
+        if (locations.length) {
+          const list = node("ul");
+          list.append(...locations.map(location => node("li", location || "Location not recorded")));
+          group.append(list);
+        } else {
+          group.append(node("p", "No points recorded"));
+        }
+        body.append(group);
+      }
+      if (road.remarks) {
+        const remarks = node("div", undefined, "road-remarks");
+        remarks.append(node("h4", "Remarks"), node("p", road.remarks));
+        body.append(remarks);
+      }
+      card.append(summary, body);
+      return card;
+    }));
+    if (query && matches.length === 1) $("road-rows").firstElementChild.open = true;
+  }
+
   function showRoads(section) {
     $("new-road-panel").hidden = true;
     const roads = section.roads || [];
@@ -261,28 +325,16 @@ function initialize(report) {
     setNewRoadPdf($("section-new-roads-pdf"), newRoadValues(project.name, section), project.name, section);
     $("road-title").textContent = section.name + " · Road details";
     $("road-detail").textContent = `${project.name} · ${format.format(roads.length)} roads · ${metricValue(section, "completion")} listed road completion`;
-    $("road-rows").replaceChildren(...roads.map(road => {
-      const tr = node("tr");
-      const name = node("th", road.name || "Unnamed road");
-      name.scope = "row";
-      tr.append(name);
-      for (const key of ["start", "end", "intermediate", "stretch"]) {
-        const points = road[key] || [];
-        const cell = node("td", points.length ? format.format(points.length) : "—");
-        const locations = points.filter(Boolean);
-        if (locations.length) {
-          const list = node("ul");
-          list.append(...locations.map(location => node("li", location)));
-          cell.append(list);
-        }
-        tr.append(cell);
-      }
-      tr.append(node("td", road.remarks || "—"));
-      return tr;
-    }));
+    currentSection = section;
+    $("road-search").value = "";
+    $("road-coverage-filter").value = "all";
+    renderRoadList();
     $("road-panel").hidden = false;
     $("road-title").focus();
   }
+  $("road-search").addEventListener("input", renderRoadList);
+  $("road-coverage-filter").addEventListener("change", renderRoadList);
+
   function completionCell(row) {
     const cell = node("td");
     cell.append(node("span", metricValue(row, "completion"), "completion-badge " + completionBand(row)));

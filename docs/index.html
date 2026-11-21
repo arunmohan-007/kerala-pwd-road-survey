@@ -6,8 +6,8 @@
 <meta name="description" content="Kerala PWD and KHRI road network survey reporting by division and PWD section.">
 <meta name="theme-color" content="#101916">
 <title>Road Network Survey Using QField | Kerala PWD | KHRI</title>
-<link rel="stylesheet" href="styles.css?v=road-lists">
-<script src="app.js?v=road-lists" defer></script>
+<link rel="stylesheet" href="styles.css?v=road-endpoints">
+<script src="app.js?v=road-endpoints" defer></script>
 </head>
 <body>
 <aside class="sidebar">
@@ -139,10 +139,15 @@
           <a id="section-new-roads-pdf" download>Section new roads only PDF</a>
         </div>
       </div>
-      <div class="table-wrap" tabindex="0" role="region" aria-labelledby="road-title"><table class="road-table">
-        <thead><tr><th scope="col">Road name</th><th scope="col">Start point</th><th scope="col">End point</th><th scope="col">Intermediate points (direction)</th><th scope="col">Intermediate points (stretch start/end)</th><th scope="col">Remarks</th></tr></thead>
-        <tbody id="road-rows"></tbody>
-      </table></div>
+        <div class="road-filters">
+          <label>Find a road or point ID<input type="search" id="road-search" placeholder="Search by road name or point ID"></label>
+          <label>Survey points<select id="road-coverage-filter">
+            <option value="all">All roads</option><option value="missing">Survey not completed</option><option value="both">Both endpoints recorded</option>
+            <option value="one">One endpoint recorded</option><option value="neither">No endpoints recorded</option>
+          </select></label>
+        </div>
+        <p id="road-results" class="road-result-count" role="status"></p>
+        <div id="road-rows" class="road-list"></div>
     </section>
     <section class="panel" id="new-road-panel" aria-labelledby="new-road-title" hidden>
       <div class="panel-head">
