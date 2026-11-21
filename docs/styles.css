@@ -355,6 +355,9 @@ th[aria-sort] .sort-marker { opacity: 1; }
 .ranking-window:hover .ranking-track,.ranking-window:focus-within .ranking-track,.ranking.is-paused .ranking-track {
   animation-play-state: paused;
 }
+.section-ranking .ranking-track {
+  animation-duration: 72s;
+}
 @keyframes ranking-scroll {
   to {
     transform: translateX(-50%);
@@ -370,7 +373,7 @@ th[aria-sort] .sort-marker { opacity: 1; }
   .ranking-track ol[aria-hidden] {
     display: none;
   }
-  #ranking-pause {
+  .ranking-head button {
     display: none;
   }
 }

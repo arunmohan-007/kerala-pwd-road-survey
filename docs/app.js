@@ -125,11 +125,33 @@ function renderDivisionRankings(divisions) {
   addGroup("Top 4", "top", ranked.slice(0, 4), 1);
   const lastStart = Math.max(4, ranked.length - 4);
   addGroup("Last 4", "last", ranked.slice(lastStart), lastStart + 1);
-  $("ranking-repeat").replaceChildren(...Array.from(list.children, item => item.cloneNode(true)));
+  prepareRankingStrip(list);
+}
 
-  const pause = $("ranking-pause");
+function renderSectionRankings(divisions) {
+  const ranked = divisions.flatMap(division => division.sections
+    .filter(section => section.listed > 0)
+    .map(section => ({...section, division: division.name})))
+    .sort((a, b) => a.covered * b.listed - b.covered * a.listed
+      || a.name.localeCompare(b.name) || a.division.localeCompare(b.division));
+  const list = $("section-ranking-list");
+  const lowest = ranked.slice(0, Math.ceil(ranked.length / 10));
+  list.closest(".ranking").hidden = lowest.length === 0;
+  lowest.forEach(section => {
+    const item = node("li");
+    item.append(node("span", section.name + " (" + section.division + ")"),
+      node("strong", percent.format(section.covered / section.listed)));
+    list.append(item);
+  });
+  prepareRankingStrip(list);
+}
+
+function prepareRankingStrip(list) {
+  const strip = list.closest(".ranking");
+  list.nextElementSibling.replaceChildren(...Array.from(list.children, item => item.cloneNode(true)));
+  const pause = strip.querySelector("button");
   pause.addEventListener("click", () => {
-    const paused = pause.closest(".ranking").classList.toggle("is-paused");
+    const paused = strip.classList.toggle("is-paused");
     pause.setAttribute("aria-pressed", String(paused));
     pause.textContent = paused ? "Resume" : "Pause";
   });
@@ -137,6 +159,7 @@ function renderDivisionRankings(divisions) {
 
 function initialize(report) {
   renderDivisionRankings(report.divisions);
+  renderSectionRankings(report.divisions);
   const division = $("division");
   const projects = new Map(report.divisions.map(row => [row.name, row]));
   let sortKey = "completion";
