@@ -219,8 +219,6 @@ function initialize(report) {
         item.append(button);
         return item;
       }));
-    $("not-started-title").textContent = selected
-      ? `PWD sections yet to start · ${selected.name}` : "PWD sections yet to start";
     $("not-started-count").textContent = format.format(items.length);
     $("not-started-empty").hidden = items.length > 0;
     const list = $("not-started-list");
