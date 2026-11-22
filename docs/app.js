@@ -90,12 +90,18 @@ function paintChart(rows, isDivision) {
   }));
 }
 function renderDivisionRankings(divisions) {
+  const compareCompletion = (a, b) => b.covered * a.listed - a.covered * b.listed;
   const ranked = divisions
     .filter(row => row.listed > 0)
-    .sort((a, b) => b.covered * a.listed - a.covered * b.listed || a.name.localeCompare(b.name));
+    .sort((a, b) => compareCompletion(a, b) || b.covered - a.covered || a.name.localeCompare(b.name));
+  let currentRank = 0;
+  const rowsWithRank = ranked.map((row, index) => {
+    if (index === 0 || compareCompletion(ranked[index - 1], row) !== 0) currentRank = index + 1;
+    return {...row, rank: currentRank};
+  });
   const list = $("ranking-list");
 
-  function addGroup(label, style, rows, firstRank) {
+  function addGroup(label, style, rows) {
     const heading = document.createElement("li");
     heading.className = "ranking-label " + style;
     heading.textContent = label;
@@ -104,11 +110,11 @@ function renderDivisionRankings(divisions) {
 
     const highest = rows[0].covered / rows[0].listed;
     const lowest = rows.at(-1).covered / rows.at(-1).listed;
-    rows.forEach((row, index) => {
+    rows.forEach(row => {
       const item = document.createElement("li");
       const rank = document.createElement("span");
       rank.className = "rank";
-      rank.textContent = firstRank + index;
+      rank.textContent = row.rank;
       const completion = row.covered / row.listed;
       const distance = style === "top" ? completion - lowest : highest - completion;
       const strength = highest === lowest ? 0 : 100 * (distance / (highest - lowest));
@@ -120,9 +126,9 @@ function renderDivisionRankings(divisions) {
     });
   }
 
-  addGroup("Top 4", "top", ranked.slice(0, 4), 1);
+  addGroup("Top 4", "top", rowsWithRank.slice(0, 4));
   const lastStart = Math.max(4, ranked.length - 4);
-  addGroup("Last 4", "last", ranked.slice(lastStart), lastStart + 1);
+  addGroup("Last 4", "last", rowsWithRank.slice(lastStart));
   prepareRankingStrip(list);
 }
 
