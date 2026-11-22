@@ -127,7 +127,7 @@ function renderDivisionRankings(divisions) {
   }
 
   const top = rowsWithRank.filter(row => row.rank <= 4);
-  addGroup("Top 4", "top", top);
+  addGroup("Divisions Completed QField Survey", "top", top);
   const lastStart = Math.max(top.length, ranked.length - 4);
   addGroup("Last 4", "last", rowsWithRank.slice(lastStart));
   prepareRankingStrip(list);
