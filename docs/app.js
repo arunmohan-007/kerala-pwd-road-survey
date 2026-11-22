@@ -126,7 +126,7 @@ function renderDivisionRankings(divisions) {
     });
   }
 
-  const top = rowsWithRank.filter(row => row.rank <= 4);
+  const top = rowsWithRank.filter(row => row.covered === row.listed);
   addGroup("Divisions Completed QField Survey", "top", top);
   const lastStart = Math.max(top.length, ranked.length - 4);
   addGroup("Last 4", "last", rowsWithRank.slice(lastStart));
