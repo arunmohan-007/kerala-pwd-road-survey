@@ -96,7 +96,7 @@ function renderDivisionRankings(divisions) {
     .sort((a, b) => compareCompletion(a, b) || b.covered - a.covered || a.name.localeCompare(b.name));
   let currentRank = 0;
   const rowsWithRank = ranked.map((row, index) => {
-    if (index === 0 || compareCompletion(ranked[index - 1], row) !== 0) currentRank = index + 1;
+    if (index === 0 || compareCompletion(ranked[index - 1], row) !== 0) currentRank += 1;
     return {...row, rank: currentRank};
   });
   const list = $("ranking-list");
@@ -126,8 +126,9 @@ function renderDivisionRankings(divisions) {
     });
   }
 
-  addGroup("Top 4", "top", rowsWithRank.slice(0, 4));
-  const lastStart = Math.max(4, ranked.length - 4);
+  const top = rowsWithRank.filter(row => row.rank <= 4);
+  addGroup("Top 4", "top", top);
+  const lastStart = Math.max(top.length, ranked.length - 4);
   addGroup("Last 4", "last", rowsWithRank.slice(lastStart));
   prepareRankingStrip(list);
 }
