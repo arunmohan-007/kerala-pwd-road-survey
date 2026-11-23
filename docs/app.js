@@ -133,6 +133,10 @@ function renderDivisionRankings(divisions) {
   prepareRankingStrip(list);
 }
 
+function sectionProjectLabel(project) {
+  return project.endsWith(" Division") ? project + ", Ernakulam District" : project;
+}
+
 function renderSectionRankings(divisions) {
   const ranked = divisions.flatMap(division => division.sections
     .filter(section => section.listed > 0)
@@ -147,7 +151,7 @@ function renderSectionRankings(divisions) {
     const count = format.format(section.covered) + "/" + format.format(section.listed);
     const rate = percent.format(section.covered / section.listed);
     item.append(node("span", String(index + 1), "rank"),
-      node("span", section.name + " (" + section.division + ")"),
+      node("span", section.name + " (" + sectionProjectLabel(section.division) + ")"),
       node("strong", count + " roads · " + rate));
     list.append(item);
   });
@@ -559,7 +563,21 @@ function initialize(report) {
       completion: metricValue(row, "completion"),
       gap: ((statewide.covered / statewide.listed - row.covered / row.listed) * 100).toFixed(1)
     }));
+  const lowProgressSections = report.divisions.flatMap(project => project.sections
+    .filter(section => isAssigned(section) && section.listed > 0
+      && section.covered * statewide.listed < statewide.covered * section.listed)
+    .map(section => ({
+      name: section.name,
+      project: project.name,
+      section,
+      completion: metricValue(section, "completion")
+    })))
+    .sort((a, b) => a.section.covered * b.section.listed - b.section.covered * a.section.listed
+      || a.name.localeCompare(b.name) || a.project.localeCompare(b.project));
+  $("low-progress-threshold").textContent = "Below the statewide completion rate of "
+    + metricValue(statewide, "completion") + ". Lowest completion first.";
   for (const [id, entries, empty] of [
+    ["low-progress", lowProgressSections, "No PWD sections are below the statewide completion rate."],
     ["completed", completed, "No PWD sections have completed the survey."],
     ["completed-projects", completedProjects, "No divisions or districts have completed the survey."],
     ["completed-by-division", completedByDivision, "No divisions or districts available."],
@@ -570,10 +588,11 @@ function initialize(report) {
     const items = entries.map(entry => {
       const item = node("li");
       const button = node("button", undefined, "status-link");
-      const title = node("strong", entry.name);
+      const title = node("strong", id === "low-progress"
+        ? entry.name + " (" + sectionProjectLabel(entry.project) + ")" : entry.name);
       button.type = "button";
       button.append(title);
-      if (entry.section) button.append(node("small", entry.project));
+      if (entry.section && id !== "low-progress") button.append(node("small", entry.project));
       if (entry.completion) button.append(node("span", entry.completion, "status-value"));
       if (entry.gap) button.append(node("small", entry.gap + " percentage points below statewide", "status-gap"));
       if (id === "completed-by-division" && entry.total > 0) {

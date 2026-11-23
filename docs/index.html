@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#101916">
 <title>Road Network Survey Using QField | Kerala PWD | KHRI</title>
 <link rel="stylesheet" href="styles.css?v=completion-scale">
-<script src="app.js?v=completed-divisions-only" defer></script>
+<script src="app.js?v=low-progress-sections" defer></script>
 </head>
 <body>
 <aside class="sidebar">
@@ -59,6 +59,11 @@
         <div class="ranking-window" tabindex="0" aria-labelledby="section-ranking-title">
           <div class="ranking-track"><ol id="section-ranking-list"></ol><ol aria-hidden="true"></ol></div>
         </div>
+      </section>
+      <section class="panel status-panel below-average" aria-labelledby="low-progress-title">
+        <div class="status-head"><h2 id="low-progress-title">PWD sections with low survey progress</h2><span id="low-progress-count" class="status-count"></span></div>
+        <p id="low-progress-threshold"></p>
+        <ul id="low-progress-list" class="status-list" tabindex="0" aria-labelledby="low-progress-title"></ul>
       </section>
       <div class="status-dashboard">
         <article class="panel status-panel status-division-progress">
