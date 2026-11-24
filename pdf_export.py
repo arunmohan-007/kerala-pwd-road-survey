@@ -197,6 +197,50 @@ def area_reports(report, footer, title, body):
             stale.unlink()
 
 
+def below_90_section_report(report, footer, title, body):
+    sections = [(division["name"], section)
+                for division in report["divisions"] for section in division["sections"]
+                if section["listed"] > 0 and section["covered"] * 10 < section["listed"] * 9]
+    sections.sort(key=lambda entry: (entry[1]["covered"] / entry[1]["listed"],
+                                     entry[0].casefold(), entry[1]["name"].casefold()))
+    heading = "PWD Sections Below 90% Completion"
+    story = [
+        Paragraph(heading, title),
+        Paragraph(f"{len(sections)} sections statewide | Verified through {stamp(report['sourceThrough'])}", body),
+        Paragraph("Road completion is the share of listed roads with matched start and end points.", body),
+        Spacer(1, 12),
+    ]
+    if sections:
+        rows = [["Rank", "Division / district", "PWD section", "Completion",
+                 "Listed roads", "Roads covered", "Roads remaining"]]
+        for rank, (division, section) in enumerate(sections, 1):
+            listed, covered = section["listed"], section["covered"]
+            rows.append([
+                rank, Paragraph(escape(division), body), Paragraph(escape(section["name"]), body),
+                f"{covered / listed:.1%}", f"{listed:,}", f"{covered:,}", f"{listed - covered:,}",
+            ])
+        grid = Table(rows, colWidths=[50, 156, 181, 88, 91, 97, 96], repeatRows=1)
+        grid.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), GREEN),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
+            ("ALIGN", (3, 1), (-1, -1), "RIGHT"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("TOPPADDING", (0, 0), (-1, -1), 6),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ]))
+        story.append(grid)
+    else:
+        story.append(Paragraph("No PWD sections with listed roads are below 90% completion.", body))
+    target = HERE / "docs" / "pwd-sections-below-90-percent.pdf"
+    temporary = target.with_suffix(".pdf.tmp")
+    SimpleDocTemplate(str(temporary), pagesize=landscape(A4), leftMargin=32, rightMargin=32,
+                      topMargin=32, bottomMargin=37, title=heading).build(
+                          story, onFirstPage=footer, onLaterPages=footer)
+    temporary.replace(target)
+
+
 def main(source):
     report = json.loads(source.read_text(encoding="utf-8"))
     styles = getSampleStyleSheet()
@@ -243,6 +287,7 @@ def main(source):
                       title="Kerala PWD and KHRI - Road Network Survey").build(
                           story, onFirstPage=footer, onLaterPages=footer)
     temporary.replace(target)
+    below_90_section_report(report, footer, title, body)
     area_reports(report, footer, title, body)
     section_reports(report, footer, title, body)
     new_road_reports(report, footer, title, body)
