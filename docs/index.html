@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#101916">
 <title>Road Network Survey Using QField | Kerala PWD | KHRI</title>
 <link rel="stylesheet" href="styles.css?v=completion-scale">
-<script src="app.js?v=low-progress-sections" defer></script>
+<script src="app.js?v=incomplete-new-roads" defer></script>
 </head>
 <body>
 <aside class="sidebar">
@@ -110,6 +110,7 @@
             <a id="division-pdf" href="road-survey.pdf" download>Statewide survey PDF</a>
             <a id="progress-new-road-download" download>New roads CSV</a>
             <a id="progress-new-road-download-pdf" download>New roads only PDF</a>
+            <a id="progress-new-road-download-pdf-incomplete" download>Incomplete new roads PDF</a>
           </div>
         </div>
         <div class="table-actions">
@@ -141,6 +142,7 @@
           <a id="section-pdf" download>Section summary PDF</a>
           <a id="road-pdf" class="pdf" download>Full section road list PDF</a>
           <a id="section-new-roads-pdf" download>Section new roads only PDF</a>
+          <a id="section-new-roads-pdf-incomplete" download>Incomplete new roads PDF</a>
         </div>
       </div>
         <div class="road-filters">
@@ -162,7 +164,7 @@
     <section class="panel" id="new-road-panel" aria-labelledby="new-road-title" hidden>
       <div class="panel-head">
         <div><h2 id="new-road-title" tabindex="-1">New road list</h2><p id="new-road-breakdown"></p></div>
-        <div class="exports"><a id="new-road-download" download>New roads CSV</a><a id="new-road-download-pdf" download>New roads only PDF</a></div>
+        <div class="exports"><a id="new-road-download" download>New roads CSV</a><a id="new-road-download-pdf" download>New roads only PDF</a><a id="new-road-download-pdf-incomplete" download>Incomplete new roads PDF</a></div>
       </div>
       <div class="table-wrap" tabindex="0" role="region" aria-labelledby="new-road-title"><table class="road-table">
         <thead><tr><th scope="col">Sl. No.</th><th scope="col">Division / district name</th><th scope="col">Section name</th><th scope="col">Newly added road name</th><th scope="col">Point ID</th><th scope="col">Status</th><th scope="col">Remarks</th></tr></thead>

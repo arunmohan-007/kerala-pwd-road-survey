@@ -41,17 +41,19 @@ def table(first, rows, total):
     return result
 
 
-def new_road_reports(report, footer, title, body):
-    folder = HERE / "docs" / "new-road-pdfs"
+def new_road_reports(report, footer, title, body, *, incomplete_only=False):
+    folder = HERE / "docs" / ("incomplete-new-road-pdfs" if incomplete_only else "new-road-pdfs")
+    report_title = "Incomplete New Roads Report" if incomplete_only else "New Roads Report"
     folder.mkdir(exist_ok=True)
     published = set()
     cell = ParagraphStyle("New road cell", parent=body, fontSize=9, leading=12)
     headings = ["Sl. No.", "Division / district", "Section", "Newly added road", "Point ID", "Status", "Remarks"]
 
     def write(key, area, roads):
-        story = [Paragraph("New Roads Report", title), Paragraph(escape(area), body),
-                 Paragraph(f"{len(roads)} added | {sum(road[4] == 'Completed' for road in roads)} completed"
-                           f" | Verified through {stamp(report['sourceThrough'])}", body),
+        summary = (f"{len(roads)} incomplete" if incomplete_only else
+                   f"{len(roads)} added | {sum(road[4] == 'Completed' for road in roads)} completed")
+        story = [Paragraph(report_title, title), Paragraph(escape(area), body),
+                 Paragraph(f"{summary} | Verified through {stamp(report['sourceThrough'])}", body),
                  Spacer(1, 11)]
         if roads:
             rows = [headings]
@@ -70,7 +72,7 @@ def new_road_reports(report, footer, title, body):
         temporary = target.with_suffix(".pdf.tmp")
         SimpleDocTemplate(str(temporary), pagesize=landscape(A4), leftMargin=32,
                           rightMargin=32, topMargin=32, bottomMargin=37,
-                          title=f"New Roads Report - {area}").build(
+                          title=f"{report_title} - {area}").build(
                               story, onFirstPage=footer, onLaterPages=footer)
         temporary.replace(target)
         published.add(target)
@@ -82,7 +84,8 @@ def new_road_reports(report, footer, title, body):
             roads = [(division["name"], section["name"], road["name"],
                       ", ".join(road.get("pointIds", [])),
                       "Completed" if road["completed"] else "Incomplete", road["remarks"])
-                     for road in section.get("newRoadList", []) if not road["inRegister"]]
+                     for road in section.get("newRoadList", [])
+                     if not road["inRegister"] and (not incomplete_only or not road["completed"])]
             if roads:
                 write(f"{i}-{j}", f'{division["name"]} / {section["name"]}', roads)
             division_roads.extend(roads)
@@ -90,7 +93,8 @@ def new_road_reports(report, footer, title, body):
             write(i, division["name"], division_roads)
         statewide.extend(division_roads)
     write("statewide", "Kerala", statewide)
-    write("empty", "No new roads in the selected area", [])
+    empty = "No incomplete new roads" if incomplete_only else "No new roads"
+    write("empty", f"{empty} in the selected area", [])
     for stale in set(folder.glob("*.pdf")) - published:
         stale.unlink()
 
@@ -242,6 +246,7 @@ def main(source):
     area_reports(report, footer, title, body)
     section_reports(report, footer, title, body)
     new_road_reports(report, footer, title, body)
+    new_road_reports(report, footer, title, body, incomplete_only=True)
 
 
 if __name__ == "__main__":

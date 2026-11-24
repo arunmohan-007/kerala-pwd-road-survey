@@ -380,6 +380,10 @@ function initialize(report) {
     const divisionIndex = report.divisions.indexOf(project) + 1;
     const scope = section ? `${divisionIndex}-${project.sections.indexOf(section) + 1}`
       : divisionIndex || "statewide";
+    const incompleteLink = $(link.id + "-incomplete");
+    const hasIncomplete = values.some(row => row[5] === "Incomplete");
+    incompleteLink.href = `incomplete-new-road-pdfs/${hasIncomplete ? scope : "empty"}.pdf`;
+    incompleteLink.download = ["Incomplete new roads", divisionName, section?.name].filter(Boolean).join(" - ") + ".pdf";
     link.href = `new-road-pdfs/${values.length ? scope : "empty"}.pdf`;
     link.download = ["New roads only", divisionName, section?.name].filter(Boolean).join(" - ") + ".pdf";
   }
