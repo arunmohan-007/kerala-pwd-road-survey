@@ -197,13 +197,13 @@ def area_reports(report, footer, title, body):
             stale.unlink()
 
 
-def below_90_section_report(report, footer, title, body):
+def below_95_section_report(report, footer, title, body):
     sections = [(division["name"], section)
                 for division in report["divisions"] for section in division["sections"]
-                if section["listed"] > 0 and section["covered"] * 10 < section["listed"] * 9]
+                if section["listed"] > 0 and section["covered"] * 100 < section["listed"] * 95]
     sections.sort(key=lambda entry: (entry[1]["covered"] / entry[1]["listed"],
                                      entry[0].casefold(), entry[1]["name"].casefold()))
-    heading = "PWD Sections Below 90% Completion"
+    heading = "PWD Sections Below 95% Completion"
     story = [
         Paragraph(heading, title),
         Paragraph(f"{len(sections)} sections statewide | Verified through {stamp(report['sourceThrough'])}", body),
@@ -232,8 +232,8 @@ def below_90_section_report(report, footer, title, body):
         ]))
         story.append(grid)
     else:
-        story.append(Paragraph("No PWD sections with listed roads are below 90% completion.", body))
-    target = HERE / "docs" / "pwd-sections-below-90-percent.pdf"
+        story.append(Paragraph("No PWD sections with listed roads are below 95% completion.", body))
+    target = HERE / "docs" / "pwd-sections-below-95-percent.pdf"
     temporary = target.with_suffix(".pdf.tmp")
     SimpleDocTemplate(str(temporary), pagesize=landscape(A4), leftMargin=32, rightMargin=32,
                       topMargin=32, bottomMargin=37, title=heading).build(
@@ -287,7 +287,7 @@ def main(source):
                       title="Kerala PWD and KHRI - Road Network Survey").build(
                           story, onFirstPage=footer, onLaterPages=footer)
     temporary.replace(target)
-    below_90_section_report(report, footer, title, body)
+    below_95_section_report(report, footer, title, body)
     area_reports(report, footer, title, body)
     section_reports(report, footer, title, body)
     new_road_reports(report, footer, title, body)
