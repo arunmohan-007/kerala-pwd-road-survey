@@ -169,7 +169,51 @@ function prepareRankingStrip(list) {
   });
 }
 
+function missingEndpoints(road) {
+  if (!road.start?.length && !road.end?.length) return "Start and end missing";
+  if (!road.start?.length) return "Start missing";
+  if (!road.end?.length) return "End missing";
+  return "";
+}
+
+function initializeIncompleteSurveys(divisions) {
+  const division = $("incomplete-division");
+  const section = $("incomplete-section");
+  const projects = new Map(divisions.map(project => [project.name, project.sections]));
+  const sectionNames = sections => [...new Set(sections.map(row => row.name))]
+    .sort((a, b) => a.localeCompare(b));
+  const allSections = divisions.flatMap(project => project.sections);
+  const rows = divisions.flatMap(project => project.sections.flatMap(group => (group.roads || [])
+    .map(road => ({name: road.name || "Unnamed road", division: project.name,
+      section: group.name, missing: missingEndpoints(road)}))
+    .filter(road => road.missing)));
+  division.replaceChildren(new Option("All divisions / districts", ""),
+    ...divisions.map(project => new Option(project.name)));
+  function render() {
+    const shown = rows.filter(road =>
+      (!division.value || road.division === division.value) &&
+      (!section.value || road.section === section.value));
+    $("incomplete-count").textContent = shown.length
+      ? `${format.format(shown.length)} roads missing a start point, end point, or both`
+      : "No incomplete surveys match the selected filters.";
+    $("incomplete-rows").replaceChildren(...shown.map(road => {
+      const row = node("tr");
+      row.append(...[road.name, road.division, road.section, road.missing].map(value => node("td", value)));
+      return row;
+    }));
+  }
+  function updateSections() {
+    section.replaceChildren(new Option("All sections", ""),
+      ...sectionNames(projects.get(division.value) || allSections).map(name => new Option(name)));
+    render();
+  }
+  division.addEventListener("change", updateSections);
+  section.addEventListener("change", render);
+  updateSections();
+}
+
 function initialize(report) {
+  initializeIncompleteSurveys(report.divisions);
   const deletions = report.roadDeletions ?? [];
   $("road-deletion-count").textContent = `${deletions.length} road register removals`;
   $("road-deletion-rows").replaceChildren(...deletions.map((entry, index) => {
@@ -287,8 +331,7 @@ function initialize(report) {
         points.append(node("span", label + " " + format.format(road[key]?.length || 0)));
       }
       summary.append(name);
-      const missing = !road.start?.length && !road.end?.length ? "Start and end missing"
-        : !road.start?.length ? "Start missing" : !road.end?.length ? "End missing" : "";
+      const missing = missingEndpoints(road);
       if (missing) {
         const warning = node("span", undefined, "road-endpoint-warning");
         warning.append(node("strong", "Survey not completed"), node("span", missing));

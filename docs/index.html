@@ -17,6 +17,7 @@
     <a href="#overview" aria-current="page"><span aria-hidden="true">◫</span>Overview</a>
     <a href="#survey-status"><span aria-hidden="true">◷</span>Survey status</a>
     <a href="#road-details"><span aria-hidden="true">☷</span>Road details</a>
+    <a href="#incomplete-surveys"><span aria-hidden="true">◷</span>Incomplete Surveys</a>
     <a href="#road-deletion-report"><span aria-hidden="true">☷</span>Road Deletion Report</a>
   </nav>
   <div class="exports"><a class="pdf" href="road-survey.pdf" download>↓ PDF</a><a href="road-survey.xlsx" download>↓ Excel</a></div>
@@ -182,6 +183,22 @@
       <p>New roads counts distinct manually entered road identities absent from the register. Spelling variations can affect this count. Ambiguous matches and incomplete identities are flagged for review.</p>
       <p id="quality"></p>
     </section>
+    </section>
+    <section data-view="incomplete-surveys" hidden>
+      <h2 class="view-title" id="incomplete-surveys-title" tabindex="-1">Incomplete Surveys</h2>
+      <section class="panel" aria-labelledby="incomplete-surveys-title">
+        <div class="road-filters">
+          <label>Division / district <select id="incomplete-division"></select></label>
+          <label>PWD section <select id="incomplete-section"></select></label>
+        </div>
+        <div class="panel-head"><p id="incomplete-count" aria-live="polite"></p></div>
+        <div class="table-wrap" tabindex="0" role="region" aria-labelledby="incomplete-surveys-title">
+          <table class="road-table">
+            <thead><tr><th scope="col">Road</th><th scope="col">Division / district</th><th scope="col">PWD section</th><th scope="col">Missing points</th></tr></thead>
+            <tbody id="incomplete-rows"></tbody>
+          </table>
+        </div>
+      </section>
     </section>
     <section data-view="road-deletion-report" hidden>
       <h2 class="view-title" id="road-deletion-title" tabindex="-1">Road Deletion Report</h2>
