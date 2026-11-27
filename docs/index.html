@@ -187,33 +187,13 @@
       <h2 class="view-title" id="road-deletion-title" tabindex="-1">Road Deletion Report</h2>
       <section class="panel" aria-labelledby="road-deletion-title">
         <div class="panel-head">
-          <p>19 existing road register entries removed between 20 and 26 November 2026.</p>
+          <p id="road-deletion-count"></p>
           <div class="exports"><a href="road-deletion-report.pdf" download>Download PDF</a></div>
         </div>
         <div class="table-wrap" tabindex="0" role="region" aria-labelledby="road-deletion-title">
           <table class="road-table">
-            <thead><tr><th scope="col">No.</th><th scope="col">Division / district</th><th scope="col">PWD section</th><th scope="col">Road removed</th></tr></thead>
-            <tbody>
-          <tr><td>1</td><td>Ernakulam Division</td><td>Kalamassery</td><td>Ayroor Church Road ch 0/000 to 0/700</td></tr>
-          <tr><td>2</td><td>Ernakulam Division</td><td>Kalamassery</td><td>Muthalalipeedika Road ch 0/000 to 1/100</td></tr>
-          <tr><td>3</td><td>Ernakulam Division</td><td>Kalamassery</td><td>Shurakkad Road ch 0/000 to 0/300</td></tr>
-          <tr><td>4</td><td>Idukki District</td><td>Idukki Section No.2</td><td>Puklikkathotty-Venmony road</td></tr>
-          <tr><td>5</td><td>Idukki District</td><td>Idukki Section No.2</td><td>Pulikkathotty-Edathana-Eanithazham-Anakuzhy-Venmony road</td></tr>
-          <tr><td>6</td><td>Idukki District</td><td>Santhanpara</td><td>Rajakkadu Valiya kandom NR City 300 Acre Bisonvally</td></tr>
-          <tr><td>7</td><td>Kasaragod District</td><td>Badiyadka</td><td>Pandi- pallanji- Bethurpara</td></tr>
-          <tr><td>8</td><td>Kollam District</td><td>Chadayamangalam</td><td>Maruthamonpally Ambalamkunnu road 4/373 to 5/850</td></tr>
-          <tr><td>9</td><td>Kollam District</td><td>Chadayamangalam</td><td>Old MC road 48/300 to 48/400 RHS</td></tr>
-          <tr><td>10</td><td>Kollam District</td><td>Chadayamangalam</td><td>Old MC road 49/650 to 49/750 LHS</td></tr>
-          <tr><td>11</td><td>Kollam District</td><td>Chadayamangalam</td><td>Old MC road 56/600 to 56/700 RHS</td></tr>
-          <tr><td>12</td><td>Kottayam District</td><td>Pala</td><td>Old S.H.-32(Ettumanoor-Poonjar road)Cherpunkal Portion ch 0/000 km to 1/200 km</td></tr>
-          <tr><td>13</td><td>Kozhikode District</td><td>Kozhikode North</td><td>Kakkodi puthiyangadi road</td></tr>
-          <tr><td>14</td><td>Malappuram District</td><td>Kuttippuram</td><td>Kalady - Anakkara Road km 0/000 to 3/600</td></tr>
-          <tr><td>15</td><td>Palakkad District</td><td>Nenmara</td><td>(b) Nenmara- Olippara road 1/000-11/833 - MDR</td></tr>
-          <tr><td>16</td><td>Thrissur District</td><td>Chalakudy</td><td>Tramway Road Ch. 0/000 to 0/900</td></tr>
-          <tr><td>17</td><td>Trivandrum District</td><td>Malayinkeezhu</td><td>Ellumala Manappuram Kuruvinmughal</td></tr>
-          <tr><td>18</td><td>Trivandrum District</td><td>Malayinkeezhu</td><td>Gandhinagar - Moozhinada</td></tr>
-          <tr><td>19</td><td>Trivandrum District</td><td>Venjaramood</td><td>Keezhaikonam-Nellanad road</td></tr>
-            </tbody>
+            <thead><tr><th scope="col">No.</th><th scope="col">Division / district</th><th scope="col">PWD section</th><th scope="col">Road removed</th><th scope="col">Verified</th></tr></thead>
+            <tbody id="road-deletion-rows"></tbody>
           </table>
         </div>
       </section>

@@ -170,6 +170,15 @@ function prepareRankingStrip(list) {
 }
 
 function initialize(report) {
+  const deletions = report.roadDeletions ?? [];
+  $("road-deletion-count").textContent = `${deletions.length} road register removals`;
+  $("road-deletion-rows").replaceChildren(...deletions.map((entry, index) => {
+    const row = node("tr");
+    for (const value of [String(index + 1), entry.division, entry.section, entry.road, entry.verified]) {
+      row.append(node("td", value));
+    }
+    return row;
+  }));
   renderDivisionRankings(report.divisions);
   renderSectionRankings(report.divisions);
   const division = $("division");

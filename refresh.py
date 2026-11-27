@@ -210,11 +210,39 @@ def division(manifest_path, name):
         for identity in new_roads:
             roads[key][identity]["name"] += " (New)"
         section["roads"] = sorted(roads[key].values(), key=lambda road: road["name"].casefold())
+        section["registeredRoads"] = [road_row["name"] for identity, road_row in roads[key].items()
+                                      if isinstance(identity, int) and road_key(road_row["name"])]
     rows = sorted(sections.values(), key=lambda item: item["name"].casefold())
     result = total(name, rows)
     if sum(result[key] for key in TYPES | {"unknown", "excluded"}) != expected:
         raise ValueError(f"Snapshot point count did not reconcile for {name}")
     return {**result, "verifiedAt": manifest["verified_at"], "sections": rows}
+
+
+def update_deletion_history(report, previous):
+    history = list(previous.get("roadDeletions", []))
+    baselines = dict(previous.get("roadRegisterBaseline", {}))
+    for division in report["divisions"]:
+        name = division["name"]
+        verified = division["verifiedAt"]
+        baseline = baselines.get(name)
+        if baseline and datetime.fromisoformat(verified) <= datetime.fromisoformat(baseline["verifiedAt"]):
+            continue
+        entries = {}
+        for section in division["sections"]:
+            for road in section.pop("registeredRoads", []):
+                entries[section_key(section["name"]), road_key(road)] = [section["name"], road]
+        if baseline:
+            for section, road in baseline["roads"]:
+                if (section_key(section), road_key(road)) not in entries:
+                    history.append({"division": name, "section": section, "road": road,
+                                    "verified": verified[:10]})
+        baselines[name] = {"verifiedAt": verified, "roads": sorted(entries.values())}
+    for division in report["divisions"]:
+        for section in division["sections"]:
+            section.pop("registeredRoads", None)
+    report["roadDeletions"] = history
+    report["roadRegisterBaseline"] = baselines
 
 
 def main():
@@ -243,12 +271,15 @@ def main():
               "sourceThrough": max(d["verifiedAt"] for d in divisions),
               "mode": "Verified backup" if args.snapshot else "Cloud refresh",
               "total": total("Kerala total", divisions), "divisions": divisions}
-    pending = HERE / "docs" / "report.json.tmp"
+    published = HERE / "docs" / "report.json"
+    previous = json.loads(published.read_text(encoding="utf-8")) if published.exists() else {}
+    update_deletion_history(result, previous)
+    pending = published.with_suffix(".json.tmp")
     pending.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     try:
         subprocess.run(["node", str(HERE / "export.mjs"), str(pending)], check=True)
         subprocess.run([sys.executable, str(HERE / "pdf_export.py"), str(pending)], check=True)
-        pending.replace(HERE / "docs" / "report.json")
+        pending.replace(published)
     finally:
         pending.unlink(missing_ok=True)
     print(f"Dashboard built from {len(divisions)} projects in {batch}")

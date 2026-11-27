@@ -31,3 +31,14 @@ shows both the report build time and the cloud verification time in IST.
 For an intentional rebuild from a prior complete verified batch, add
 `--snapshot YYYY-MM-DD_HHMMSS_microseconds`. The site labels that source
 "Verified backup".
+
+
+## Road deletions
+
+After deleting a road from the QFieldCloud register, run and publish a complete
+dashboard refresh. The refresh compares each verified road register with the
+most recent verified register already published. It adds missing road names
+by division and section to the Road Deletion Report tab and PDF. The report
+shows the verification date. A renamed or reassigned road can appear as a
+removal from its previous section or under its previous name. Rebuilding from
+an older snapshot preserves the newer register baseline and deletion history.

@@ -41,6 +41,33 @@ def table(first, rows, total):
     return result
 
 
+def road_deletion_report(report):
+    entries = report.get("roadDeletions", [])
+    styles = getSampleStyleSheet()
+    body = styles["BodyText"]
+    rows = [["No.", "Division / district", "PWD section", "Road removed", "Verified"]]
+    rows.extend([[str(index), *(Paragraph(escape(entry[field]), body)
+                                for field in ("division", "section", "road", "verified"))]
+                 for index, entry in enumerate(entries, 1)])
+    listing = Table(rows, colWidths=[32, 130, 125, 325, 115], repeatRows=1)
+    listing.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), GREEN),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+    ]))
+    target = HERE / "docs" / "road-deletion-report.pdf"
+    temporary = target.with_suffix(".pdf.tmp")
+    SimpleDocTemplate(str(temporary), pagesize=landscape(A4), leftMargin=36,
+                      rightMargin=36, title="Road Deletion Report").build([
+        Paragraph("Road Deletion Report", styles["Title"]),
+        Paragraph(f"{len(entries)} road register removals", body),
+        Spacer(1, 10),
+        listing,
+    ])
+    temporary.replace(target)
+
+
 def new_road_reports(report, footer, title, body, *, incomplete_only=False):
     folder = HERE / "docs" / ("incomplete-new-road-pdfs" if incomplete_only else "new-road-pdfs")
     report_title = "Incomplete New Roads Report" if incomplete_only else "New Roads Report"
@@ -292,6 +319,7 @@ def main(source):
     section_reports(report, footer, title, body)
     new_road_reports(report, footer, title, body)
     new_road_reports(report, footer, title, body, incomplete_only=True)
+    road_deletion_report(report)
 
 
 if __name__ == "__main__":
