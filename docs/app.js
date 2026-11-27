@@ -183,6 +183,7 @@ function initializeIncompleteSurveys(divisions) {
   const sectionNames = sections => [...new Set(sections.map(row => row.name))]
     .sort((a, b) => a.localeCompare(b));
   const allSections = divisions.flatMap(project => project.sections);
+  const sectionOrder = [...new Set(allSections.map(row => row.name))];
   const rows = divisions.flatMap(project => project.sections.flatMap(group => (group.roads || [])
     .map(road => ({name: road.name || "Unnamed road", division: project.name,
       section: group.name, missing: missingEndpoints(road)}))
@@ -196,6 +197,14 @@ function initializeIncompleteSurveys(divisions) {
     $("incomplete-count").textContent = shown.length
       ? `${format.format(shown.length)} roads missing a start point, end point, or both`
       : "No incomplete surveys match the selected filters.";
+    const download = $("incomplete-pdf");
+    const divisionIndex = divisions.findIndex(project => project.name === division.value) + 1;
+    const sectionIndex = (projects.get(division.value) || []).findIndex(row => row.name === section.value) + 1;
+    let pdfKey = "statewide";
+    if (divisionIndex) pdfKey = section.value ? `${divisionIndex}-${sectionIndex}` : String(divisionIndex);
+    else if (section.value) pdfKey = `section-${sectionOrder.indexOf(section.value) + 1}`;
+    download.parentElement.hidden = shown.length === 0;
+    download.href = `incomplete-survey-pdfs/${pdfKey}.pdf`;
     $("incomplete-rows").replaceChildren(...shown.map(road => {
       const row = node("tr");
       row.append(...[road.name, road.division, road.section, road.missing].map(value => node("td", value)));

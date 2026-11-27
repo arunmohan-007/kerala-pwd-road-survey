@@ -126,6 +126,67 @@ def new_road_reports(report, footer, title, body, *, incomplete_only=False):
         stale.unlink()
 
 
+def incomplete_survey_reports(report):
+    folder = HERE / "docs" / "incomplete-survey-pdfs"
+    folder.mkdir(exist_ok=True)
+    published = set()
+    styles = getSampleStyleSheet()
+    body = styles["BodyText"]
+
+    def write(key, area, entries):
+        road_label = "road" if len(entries) == 1 else "roads"
+        story = [
+            Paragraph("Incomplete Surveys", styles["Title"]),
+            Paragraph(escape(area), body),
+            Paragraph(f"{len(entries)} {road_label} | Verified through {stamp(report['sourceThrough'])}", body),
+            Spacer(1, 12),
+        ]
+        rows = [["Road", "Division / district", "PWD section", "Missing points"]]
+        rows.extend([Paragraph(escape(value), body) for value in entry] for entry in entries)
+        grid = Table(rows, colWidths=[295, 156, 140, 153], repeatRows=1)
+        grid.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), GREEN),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ]))
+        story.append(grid)
+        target = folder / f"{key}.pdf"
+        temporary = target.with_suffix(".pdf.tmp")
+        SimpleDocTemplate(str(temporary), pagesize=landscape(A4), leftMargin=36,
+                          rightMargin=36, topMargin=32, bottomMargin=36,
+                          title=f"Incomplete Surveys - {area}").build(story)
+        temporary.replace(target)
+        published.add(target)
+
+    statewide = []
+    by_section = {}
+    for i, division in enumerate(report["divisions"], 1):
+        division_entries = []
+        for j, section in enumerate(division["sections"], 1):
+            section_entries = []
+            for road in section.get("roads", []):
+                start, end = bool(road.get("start")), bool(road.get("end"))
+                if start and end:
+                    continue
+                missing = "End missing" if start else "Start missing" if end else "Start and end missing"
+                section_entries.append((road["name"] or "Unnamed road", division["name"],
+                                        section["name"], missing))
+            if section_entries:
+                write(f"{i}-{j}", f'{division["name"]} / {section["name"]}', section_entries)
+            by_section.setdefault(section["name"], []).extend(section_entries)
+            division_entries.extend(section_entries)
+        if division_entries:
+            write(i, division["name"], division_entries)
+        statewide.extend(division_entries)
+    for i, (name, entries) in enumerate(by_section.items(), 1):
+        if entries:
+            write(f"section-{i}", name, entries)
+    write("statewide", "Kerala", statewide)
+    for stale in set(folder.glob("*.pdf")) - published:
+        stale.unlink()
+
+
 def section_reports(report, footer, title, body):
     folder = HERE / "docs" / "section-pdfs"
     folder.mkdir(exist_ok=True)
@@ -320,6 +381,7 @@ def main(source):
     new_road_reports(report, footer, title, body)
     new_road_reports(report, footer, title, body, incomplete_only=True)
     road_deletion_report(report)
+    incomplete_survey_reports(report)
 
 
 if __name__ == "__main__":
