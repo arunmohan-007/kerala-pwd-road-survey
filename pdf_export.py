@@ -285,13 +285,20 @@ def area_reports(report, footer, title, body):
             stale.unlink()
 
 
-def below_95_section_report(report, footer, title, body):
+def footer(canvas, doc):
+    canvas.setFillColor(INK)
+    canvas.setFont("Helvetica", 9)
+    canvas.drawString(39, 23, "Kerala Public Works Department  /  Kerala Highway Research Institute")
+    canvas.drawRightString(doc.pagesize[0] - 39, 23, str(doc.page))
+
+
+def incomplete_pwd_sections_report(report, title, body):
     sections = [(division["name"], section)
                 for division in report["divisions"] for section in division["sections"]
-                if section["listed"] > 0 and section["covered"] * 100 < section["listed"] * 95]
+                if section["covered"] < section["listed"]]
     sections.sort(key=lambda entry: (entry[1]["covered"] / entry[1]["listed"],
                                      entry[0].casefold(), entry[1]["name"].casefold()))
-    heading = "PWD Sections Below 95% Completion"
+    heading = "PWD Sections That Have Not Achieved 100%"
     story = [
         Paragraph(heading, title),
         Paragraph(f"{len(sections)} sections statewide | Verified through {stamp(report['sourceThrough'])}", body),
@@ -303,9 +310,11 @@ def below_95_section_report(report, footer, title, body):
                  "Listed roads", "Roads covered", "Roads remaining"]]
         for rank, (division, section) in enumerate(sections, 1):
             listed, covered = section["listed"], section["covered"]
+            completion = f"{covered / listed:.1%}"
             rows.append([
                 rank, Paragraph(escape(division), body), Paragraph(escape(section["name"]), body),
-                f"{covered / listed:.1%}", f"{listed:,}", f"{covered:,}", f"{listed - covered:,}",
+                "<100%" if completion == "100.0%" else completion,
+                f"{listed:,}", f"{covered:,}", f"{listed - covered:,}",
             ])
         grid = Table(rows, colWidths=[50, 156, 181, 88, 91, 97, 96], repeatRows=1)
         grid.setStyle(TableStyle([
@@ -315,13 +324,13 @@ def below_95_section_report(report, footer, title, body):
             ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
             ("ALIGN", (3, 1), (-1, -1), "RIGHT"),
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ("TOPPADDING", (0, 0), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ("TOPPADDING", (0, 0), (-1, -1), 5),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
         ]))
         story.append(grid)
     else:
-        story.append(Paragraph("No PWD sections with listed roads are below 95% completion.", body))
-    target = HERE / "docs" / "pwd-sections-below-95-percent.pdf"
+        story.append(Paragraph("All PWD sections with listed roads have achieved 100% completion.", body))
+    target = HERE / "docs" / "pwd-sections-not-at-100-percent.pdf"
     temporary = target.with_suffix(".pdf.tmp")
     SimpleDocTemplate(str(temporary), pagesize=landscape(A4), leftMargin=32, rightMargin=32,
                       topMargin=32, bottomMargin=37, title=heading).build(
@@ -362,12 +371,6 @@ def main(source):
         story.append(table("PWD section", division["sections"],
                            {**division, "name": "Division total"}))
 
-    def footer(canvas, doc):
-        canvas.setFillColor(INK)
-        canvas.setFont("Helvetica", 9)
-        canvas.drawString(39, 23, "Kerala Public Works Department  /  Kerala Highway Research Institute")
-        canvas.drawRightString(doc.pagesize[0] - 39, 23, str(doc.page))
-
     target = HERE / "docs" / "road-survey.pdf"
     temporary = target.with_suffix(".pdf.tmp")
     SimpleDocTemplate(str(temporary), pagesize=landscape(A4), leftMargin=32,
@@ -375,7 +378,7 @@ def main(source):
                       title="Kerala PWD and KHRI - Road Network Survey").build(
                           story, onFirstPage=footer, onLaterPages=footer)
     temporary.replace(target)
-    below_95_section_report(report, footer, title, body)
+    incomplete_pwd_sections_report(report, title, body)
     area_reports(report, footer, title, body)
     section_reports(report, footer, title, body)
     new_road_reports(report, footer, title, body)
